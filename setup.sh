@@ -5,11 +5,11 @@ set -e
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 ## What user is use for the setup and he's home dir
-SETUP_USER=${SETUP_USER-$USER}
+SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo ~${SETUP_USER})}"
 
 ## Ubuntu apt pre-req
-UBUNTU_PKGS=${UBUNTU_PKGS:-python-setuptools python-dev build-essential libffi-dev libssl-dev curl ruby}
+UBUNTU_PKGS="${UBUNTU_PKGS:-python-setuptools python-dev build-essential libffi-dev libssl-dev curl ruby}"
 
 ## Ansible virtual environment directory
 ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
@@ -18,7 +18,7 @@ ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
 DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 
 ## Array of versions of ansiblet to install and what requirements files for each version
-ANSIBLE_VERSIONS[0]=${ANSIBLE_VERSIONS[0]:-"1.9.4"}
+ANSIBLE_VERSIONS[0]="${ANSIBLE_VERSIONS[0]:-"1.9.4"}"
 #INSTALL_TYPE[1]="pip"
 
 ## Default version to use
