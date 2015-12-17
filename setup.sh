@@ -35,7 +35,7 @@ COLOR_YEL='\e[0;33m' # Yellow
 COLOR_GRN='\e[0;32m' # green
 
 ## Ansible exec path and binary
-ANSIBLE_EXEC_HTTPS="${ANSIBLE_EXEC_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/_ansible_exec.sh"
+ANSIBLE_EXEC_HTTPS="${ANSIBLE_EXEC_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/_ansible_exec.sh}"
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 ANSIBLE_EXEC_FILE="${ANSIBLE_EXEC_FILE:-$ANSIBLE_BIN_PATH/ansible_exec}"
 
