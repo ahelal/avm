@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
+
 ## This current directory.
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-ROOT_DIR=$(cd "$DIR/../../" && pwd)
 
 ## What user is use for the setup and he's home dir
 SETUP_USER=${SETUP_USER-$USER}
@@ -35,6 +35,7 @@ COLOR_YEL='\e[0;33m' # Yellow
 COLOR_GRN='\e[0;32m' # green
 
 ## Ansible exec path and binary
+ANSIBLE_EXEC_HTTPS="${ANSIBLE_EXEC_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/_ansible_exec.sh"
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 ANSIBLE_EXEC_FILE="${ANSIBLE_EXEC_FILE:-$ANSIBLE_BIN_PATH/ansible_exec}"
 
@@ -109,20 +110,20 @@ ansible_install_venv(){
 
   cd $ANSIBLE_BASEDIR
   # Create link for v1, v2, dev
-  ! [ -z $ANSIBLE_V1_PATH ] && echo "Creating v1 symlinc" && sudo ln -sf $(pwd)/$ANSIBLE_V1_PATH $(pwd)/v1 
-  ! [ -z $ANSIBLE_V2_PATH ] && echo "Creating v2 symlinc" && sudo ln -sf $(pwd)/$ANSIBLE_V2_PATH $(pwd)/v2
-  ! [ -z $ANSIBLE_DEV_PATH ] && echo "Creating dev symlinc" && sudo ln -sf $(pwd)/$ANSIBLE_DEV_PATH $(pwd)/dev
+  [ -z "$ANSIBLE_V1_PATH" ] || echo "Creating v1 symlinc" || sudo ln -sf $(pwd)/$ANSIBLE_V1_PATH $(pwd)/v1 
+  [ -z "$ANSIBLE_V2_PATH" ] || echo "Creating v2 symlinc" || sudo ln -sf $(pwd)/$ANSIBLE_V2_PATH $(pwd)/v2
+  [ -z "$ANSIBLE_DEV_PATH" ] || echo "Creating dev symlinc" || sudo ln -sf $(pwd)/$ANSIBLE_DEV_PATH $(pwd)/dev
 }
 
 ## Copy and link ansible executables i.e. ansible-playbook, ansible-galaxy, ... to ansible exec script
 ##
 setup_bin_path() {
-  # DO USE CURL
   cd $DIR
-  sudo cp _ansible_exec.sh $ANSIBLE_EXEC_FILE
+  sudo curl -s -o $ANSIBLE_EXEC_FILE $ANSIBLE_EXEC_HTTPS
   sudo chmod +x $ANSIBLE_EXEC_FILE
   for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
   do
+    echo "Ensuring symlink ${ANSIBLE_BIN_PATH}/$bin is pointing to $ANSIBLE_EXEC_FILE "
     sudo ln -sf $ANSIBLE_EXEC_FILE ${ANSIBLE_BIN_PATH}/$bin
   done
 }
@@ -158,7 +159,9 @@ fi
 
 # Install virtual env
 sudo -H easy_install --upgrade virtualenv
+
 # Install ansible in the virtual envs
 ansible_install_venv
+
 # Setup up global link to ansible bin
 setup_bin_path
