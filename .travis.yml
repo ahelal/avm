@@ -1,0 +1,21 @@
+---
+language: python
+python: "2.7"
+
+before_install:
+  # Make sure everything's up to date.
+  - cd /tmp 
+  - git clone https://github.com/sstephenson/bats.git
+  - cd /tmp/bats 
+  - sudo ./install.sh /usr/local
+
+install:
+  - cd $TRAVIS_BUILD_DIR/example 
+  - ./travis-test.sh
+
+script:
+  - cd $TRAVIS_BUILD_DIR/tests
+  - ./common.sh
+  - ./ansible-version.sh
+  - ./various_runs.sh
+  - ansible --version
