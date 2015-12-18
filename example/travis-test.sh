@@ -18,7 +18,7 @@ ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"  # v2
 ANSIBLE_DEFAULT_VERSION="ANSIBLE_VERSIONS[0]"
 
 ## Create a temp dir
-my_temp_dir=$(mktemp -dt "${0}.xxxx")
+my_temp_dir=$(mktemp -dt "${0}.XXXX")
 
 ## Get setup
 curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/setup.sh -o $my_temp_dir/$setup.sh
