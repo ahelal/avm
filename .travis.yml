@@ -4,6 +4,10 @@ sudo: required
 language: python
 python: "2.7"
 
+os:
+  - linux
+  - osx
+
 before_install:
   # Make sure everything's up to date.
   - cd /tmp 
