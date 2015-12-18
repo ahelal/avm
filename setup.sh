@@ -19,25 +19,23 @@ DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 
 ## Array of versions of ansiblet to install and what requirements files for each version
 ANSIBLE_VERSIONS[0]="${ANSIBLE_VERSIONS[0]:-"1.9.4"}"
-#INSTALL_TYPE[1]="pip"
 
 ## Default version to use
-ANSIBLE_DEFAULT_VERSION="$ANSIBLE_BASEDIR/v1"
+ANSIBLE_DEFAULT_VERSION="v1"
 
 ## What version to use for each v1,v2,dev
 ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
-#ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"   # v2 
-#ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[3]}"  # dev
 
 COLOR_END='\e[0m'    # End of color
 COLOR_RED='\e[0;31m' # Red
 COLOR_YEL='\e[0;33m' # Yellow
 COLOR_GRN='\e[0;32m' # green
 
-## Ansible exec path and binary
-ANSIBLE_EXEC_HTTPS="${ANSIBLE_EXEC_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/_ansible_exec.sh}"
+## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
-ANSIBLE_EXEC_FILE="${ANSIBLE_EXEC_FILE:-$ANSIBLE_BIN_PATH/ansible_exec}"
+
+ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/ansible-version.j2}"
+ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/ansible-version.yml}"
 
 ## Print Error msg
 ##
@@ -79,53 +77,66 @@ fi
 ## Create Virtual environment
 ##
 ansible_install_venv(){
-  RUN_COMMAND_AS "mkdir -p $ANSIBLE_BASEDIR"
-  for i in $(seq 1 ${#ANSIBLE_VERSIONS[@]})
-  do
-    i=$(($i-1))
-    ansible_version="${ANSIBLE_VERSIONS[$i]}"
+    RUN_COMMAND_AS "mkdir -p $ANSIBLE_BASEDIR"
+    for i in $(seq 1 ${#ANSIBLE_VERSIONS[@]})
+    do
+        i=$(($i-1))
+        ansible_version="${ANSIBLE_VERSIONS[$i]}"
 
-    cd $ANSIBLE_BASEDIR
-    RUN_COMMAND_AS "mkdir -p $ansible_version"
-    cd $ansible_version
-    echo "$ansible_version > Creating/updating venv for ansible $ansible_version"
-    # 1st create virtual env for this version
-    RUN_COMMAND_AS "virtualenv venv"
-    # 2nd Check if python requirments file exists and install requirement file
-    if [ -f "${PYTHON_REQUIREMNTS[$i]}" ]; then 
-        echo "$ansible_version > Install python requirments file ${PYTHON_REQUIREMNTS[$i]}"
-        RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q --upgrade --requirement ${PYTHON_REQUIREMNTS[$i]}"
-    fi
+        RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}/${ansible_version}"
+        cd "${ANSIBLE_BASEDIR}/${ansible_version}"
+        
+        # 1st create virtual env for this version
+        echo "$ansible_version > Creating/updating venv for ansible $ansible_version"
+        RUN_COMMAND_AS "virtualenv venv"
 
-    # 3ed install Ansible in venv
-    if [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "pip" ]; then
-        echo "$ansible_version > Using ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} as installation type"
-        RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q ansible==$ansible_version"
-    elif [${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "git" ]; then
-        echo "$ansible_version > Using ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} as installation type"
-    else
-        msg_exit "$ansible_version > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
-    fi
-  done
+        # 2nd Check if python requirments file exists and install requirement file
+        if [ -f "${PYTHON_REQUIREMNTS[$i]}" ]; then 
+            echo "$ansible_version > Install python requirments file ${PYTHON_REQUIREMNTS[$i]}"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q --upgrade --requirement ${PYTHON_REQUIREMNTS[$i]}"
+        fi
 
-  cd $ANSIBLE_BASEDIR
-  # Create link for v1, v2, dev
-  [ -z "$ANSIBLE_V1_PATH" ] || echo "Creating v1 symlinc" || sudo ln -sf $(pwd)/$ANSIBLE_V1_PATH $(pwd)/v1 
-  [ -z "$ANSIBLE_V2_PATH" ] || echo "Creating v2 symlinc" || sudo ln -sf $(pwd)/$ANSIBLE_V2_PATH $(pwd)/v2
-  [ -z "$ANSIBLE_DEV_PATH" ] || echo "Creating dev symlinc" || sudo ln -sf $(pwd)/$ANSIBLE_DEV_PATH $(pwd)/dev
+        # 3ed install Ansible in venv
+        if [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "pip" ]; then
+            echo "$ansible_version > Using 'pip' as installation type"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q ansible==$ansible_version"
+        elif [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "git" ]; then
+            [[ -z "$(which git)" ]] && msg_exit "git is not installed"
+            echo "$ansible_version > Using 'git' as installation type"
+            if [ -d "ansible/.git" ]; then
+                cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
+                RUN_COMMAND_AS "git pull --rebase"
+                RUN_COMMAND_AS "git submodule update --init --recursive"
+            else
+                RUN_COMMAND_AS "git clone git://github.com/ansible/ansible.git --recursive"
+            fi
+            cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
+            # Check out the version and install it
+            RUN_COMMAND_AS "git checkout $ansible_version"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py install"
+        else
+            msg_exit "$ansible_version > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
+        fi
+      done
 }
 
-## Copy and link ansible executables i.e. ansible-playbook, ansible-galaxy, ... to ansible exec script
+## Setup default ansible version for v1,v2 and dev
 ##
-setup_bin_path() {
-  cd $DIR
-  sudo curl -s -o $ANSIBLE_EXEC_FILE $ANSIBLE_EXEC_HTTPS
-  sudo chmod +x $ANSIBLE_EXEC_FILE
-  for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
-  do
-    echo "Ensuring symlink ${ANSIBLE_BIN_PATH}/$bin is pointing to $ANSIBLE_EXEC_FILE "
-    sudo ln -sf $ANSIBLE_EXEC_FILE ${ANSIBLE_BIN_PATH}/$bin
-  done
+setup_symlink() {
+  cd $ANSIBLE_BASEDIR
+  # Create link for v1, v2, dev
+  if ! [ -z "$ANSIBLE_V1_PATH" ]; then
+    echo "Creating ${ANSIBLE_BASEDIR}/v1 to ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH"
+    sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH ${ANSIBLE_BASEDIR}/v1
+  fi
+  if ! [ -z "$ANSIBLE_V2_PATH" ]; then
+    echo "Creating ${ANSIBLE_BASEDIR}/v2 ${ANSIBLE_BASEDIR}/${ANSIBLE_V2_PATH}"
+    sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V2_PATH ${ANSIBLE_BASEDIR}/v2
+  fi
+  if ! [ -z "$ANSIBLE_DEV_PATH" ]; then 
+    echo "Creating ${ANSIBLE_BASEDIR}/dev ${ANSIBLE_BASEDIR}/${ANSIBLE_DEV_PATH}"
+    sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_DEV_PATH ${ANSIBLE_BASEDIR}/dev
+  fi
 }
 
 ## Do some checks user, python and easy_install
@@ -154,6 +165,26 @@ if [ "$system" == "Linux" ]; then
   fi
 fi
 
+## Setup ansible-version binary file
+##
+setup_version_bin() {
+  temp_dir=$(mktemp -dt "$0")
+  sudo curl -s -o $temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
+  sudo curl -s -o $temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
+
+  ${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $temp_dir/ANSIBLE_VERSION_YML \
+    -e "ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH" \
+    -e "ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR" \
+    -e "ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION" \
+    -e "ANSIBLE_VERSION_TEMPLATE_PATH=$temp_dir/ANSIBLE_VERSION_J2"
+
+  echo "Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
+  ansible-version set $ANSIBLE_DEFAULT_VERSION
+
+  echo "Ensuring symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
+  sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
+}
+
 # Check curl
 [[ -z "$(which curl)" ]] && msg_exit "curl is not in your path. Please install it or reference it in your path"
 
@@ -163,5 +194,10 @@ sudo -H easy_install --upgrade virtualenv
 # Install ansible in the virtual envs
 ansible_install_venv
 
-# Setup up global link to ansible bin
-setup_bin_path
+# Setup default symlink
+setup_symlink
+
+# Setup ansible-version binary file
+setup_version_bin
+
+
