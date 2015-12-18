@@ -1,11 +1,8 @@
 #!/bin/bash
 set -e
 
-#ANSIBLE_BIN_PATH="/usr/local/bin"
 ANSIBLE_BIN_PATH="{{ ANSIBLE_BIN_PATH }}"
-#ANSIBLE_BASEDIR="/Users/ahelal/.venv_ansible"
 ANSIBLE_BASEDIR="{{ ANSIBLE_BASEDIR }}"
-
 ANSIBLE_SELECTED_VERSION="{{ ANSIBLE_SELECTED_VERSION }}"
 
 #Function: help
@@ -34,6 +31,7 @@ show_versions(){
     cd $ANSIBLE_BASEDIR
     for version in *
     do
+        [[ $version =~ ^(ansible-version)$ ]] && continue
         versions_list+="'${version}' "
     done
     echo "$versions_list"
