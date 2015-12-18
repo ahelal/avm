@@ -20,10 +20,8 @@ ANSIBLE_DEFAULT_VERSION="ANSIBLE_VERSIONS[0]"
 ## Create a temp dir
 filename=$( echo ${0} | sed  's|/||g' )
 my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
-
 ## Get setup
 curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/setup.sh -o $my_temp_dir/setup.sh
-
 ## Run the setup
-. $my_temp_dir/$setup.sh
+. $my_temp_dir/setup.sh
 
