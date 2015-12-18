@@ -1,0 +1,14 @@
+# Pyhon Setup tools
+setuptools
+
+# cryptography 
+cryptography
+
+# used by dig lookup
+dnspython
+
+# Ansible
+simplejson
+
+# AWS python boto
+boto
