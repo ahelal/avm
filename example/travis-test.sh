@@ -22,7 +22,7 @@ filename=$( echo ${0} | sed  's|/||g' )
 my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
 
 ## Get setup
-curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/setup.sh -o $my_temp_dir/$setup.sh
+curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/setup.sh -o $my_temp_dir/setup.sh
 
 ## Run the setup
 . $my_temp_dir/$setup.sh

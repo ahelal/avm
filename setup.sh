@@ -176,20 +176,20 @@ setup_version_bin() {
   my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
 
   # Get ansible yaml and j2 file from github
-  sudo curl -s -o $temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
-  sudo curl -s -o $temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
+  sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
+  sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
 
-  ${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $temp_dir/ANSIBLE_VERSION_YML \
+  ${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
     -e "ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH" \
     -e "ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR" \
     -e "ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION" \
-    -e "ANSIBLE_VERSION_TEMPLATE_PATH=$temp_dir/ANSIBLE_VERSION_J2"
-
-  echo "Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
-  ansible-version set $ANSIBLE_DEFAULT_VERSION
+    -e "ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"
 
   echo "Ensuring symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
   sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
+
+  echo "Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
+  ansible-version set $ANSIBLE_DEFAULT_VERSION
 }
 
 
