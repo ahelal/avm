@@ -1,0 +1,12 @@
+---
+
+ - name: Deploy Ansible-verion
+   hosts: all 
+   gather_facts: False
+   connection: local
+   tasks:
+      - name: Deploy ansibe-version script
+        template:
+          src="{{ ANSIBLE_VERSION_TEMPLATE_PATH }}"
+          dest="{{ ANSIBLE_BASEDIR }}/ansible-version"
+          mode=0755
