@@ -168,7 +168,11 @@ fi
 ## Setup ansible-version binary file
 ##
 setup_version_bin() {
-  temp_dir=$(mktemp -dt "$0")
+  
+  filename=$( echo ${0} | sed  's|/||g' )
+  my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
+
+  # Get ansible yaml and j2 file from github
   sudo curl -s -o $temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
   sudo curl -s -o $temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
 
