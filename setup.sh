@@ -143,7 +143,6 @@ setup_symlink() {
 ##
 [[ "$(whoami)" == "root" ]] && msg_exit "Please run as a normal user not root."
 [[ -z "$(which python)" ]] && msg_exit "Opps python is not installed or not in your path."
-[[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not in your path."
 
 ## Check if I can change to root
 ##
@@ -164,6 +163,10 @@ if [ "$system" == "Linux" ]; then
     msg_warning "Your linux system was not tested. It might work"
   fi
 fi
+
+# Check curl and easy_install
+[[ -z "$(which curl)" ]] && msg_exit "curl is not in your path. Please install it or reference it in your path"
+[[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not in your path."
 
 ## Setup ansible-version binary file
 ##
@@ -189,8 +192,6 @@ setup_version_bin() {
   sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
 }
 
-# Check curl
-[[ -z "$(which curl)" ]] && msg_exit "curl is not in your path. Please install it or reference it in your path"
 
 # Install virtual env
 sudo -H easy_install --upgrade virtualenv
