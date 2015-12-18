@@ -20,4 +20,5 @@ script:
   - ./common.sh
   - ./ansible-version.sh
   - ./various_runs.sh
+  - ./installation.sh
   - ansible --version

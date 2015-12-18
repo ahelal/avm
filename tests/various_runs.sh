@@ -21,9 +21,3 @@
     run stat /tmp/various_runs.sh
     [ $status = 0 ]
 }
-
-@test "Run Check boto is installed by installer" {
-    run python -c "import boto"
-    [ $status = 0 ]
-}
-
