@@ -20,5 +20,7 @@ script:
   - ./common.sh
   - ./ansible-version.sh
   - ./various_runs.sh
+  # Run setup again with full path
+  - bash -x $TRAVIS_BUILD_DIR/example/travis-test.sh
   - ./installation.sh
   - ansible --version

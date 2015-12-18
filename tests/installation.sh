@@ -7,7 +7,3 @@
     [ $status = 0 ]
 }
 
-@test "Installation Run setup again TRAVIS_BUILD_DIR/example/travis-test." {
-    run $TRAVIS_BUILD_DIR/example/travis-test.sh
-    [ $status = 0 ]
-}
