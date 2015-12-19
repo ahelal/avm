@@ -2,6 +2,9 @@
 dist: trusty
 sudo: required
 language: python
+matrix:
+  allow_failures:
+    - os: osx
 
 os:
   - linux
