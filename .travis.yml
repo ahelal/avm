@@ -19,7 +19,7 @@ before_install:
 
 install:
   - cd $TRAVIS_BUILD_DIR/example 
-  - bash -x ./travis-test.sh
+  - bash -x ./travis-setup-basic.sh
 
 script:
   - cd $TRAVIS_BUILD_DIR/tests
@@ -27,7 +27,7 @@ script:
   - ./ansible-version.sh
   - ./various_runs.sh
   # Run setup again with full path Basic
-  - bash -x $TRAVIS_BUILD_DIR/example/travis-test-basic.sh
+  - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-basic.sh
   - ./installation.sh
   - ansible --version
   # Run setup again with full path setup user
