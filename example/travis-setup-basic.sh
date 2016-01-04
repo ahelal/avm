@@ -3,9 +3,10 @@ set -e
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+COMMIT_HASH=${TRAVIS_COMMIT_RANGE##*...}
 # Use travis Branch 
-ANSIBLE_VERSION_J2_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$TRAVIS_BRANCH/ansible-version.j2"
-ANSIBLE_VERSION_YML_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$TRAVIS_BRANCH/ansible-version.yml"
+export ANSIBLE_VERSION_J2_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.j2"
+export ANSIBLE_VERSION_YML_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.yml"
 
 ## Install Ansible 1.9.4
 ANSIBLE_VERSIONS[0]="1.9.4"
@@ -25,7 +26,7 @@ ANSIBLE_DEFAULT_VERSION="ANSIBLE_VERSIONS[0]"
 filename=$( echo ${0} | sed  's|/||g' )
 my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
 ## Get setup
-curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$TRAVIS_BRANCH/setup.sh -o $my_temp_dir/setup.sh
+curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/setup.sh -o $my_temp_dir/setup.sh
 ## Run the setup
 . $my_temp_dir/setup.sh
 
