@@ -32,5 +32,4 @@ script:
   - ./installation.sh
   - ansible --version
   # Run setup again with full path setup user
-  - bash -x $TRAVIS_BUILD_DIR/example/travis-test-setup-user.sh
-  - ./common_setup_user.sh
+  - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-user.sh
