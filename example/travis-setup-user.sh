@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+echo "Running travis travis-setup-user.sh"
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
