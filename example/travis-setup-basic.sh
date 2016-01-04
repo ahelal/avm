@@ -3,10 +3,10 @@ set -e
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+# Use travis commit
 COMMIT_HASH=${TRAVIS_COMMIT_RANGE##*...}
-# Use travis Branch 
-export ANSIBLE_VERSION_J2_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.j2"
-export ANSIBLE_VERSION_YML_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.yml"
+ANSIBLE_VERSION_J2_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.j2"
+ANSIBLE_VERSION_YML_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.yml"
 
 ## Install Ansible 1.9.4
 ANSIBLE_VERSIONS[0]="1.9.4"
