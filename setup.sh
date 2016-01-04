@@ -183,6 +183,7 @@ setup_version_bin() {
     -e "ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH" \
     -e "ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR" \
     -e "ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION" \
+    -e "SETUP_USER=$SETUP_USER" \
     -e "ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"
 
   echo "Ensuring symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
@@ -191,7 +192,6 @@ setup_version_bin() {
   echo "Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
   ansible-version set $ANSIBLE_DEFAULT_VERSION
 }
-
 
 # Install virtual env
 sudo -H easy_install --upgrade virtualenv
@@ -204,5 +204,3 @@ setup_symlink
 
 # Setup ansible-version binary file
 setup_version_bin
-
-
