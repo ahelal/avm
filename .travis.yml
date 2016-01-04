@@ -14,10 +14,11 @@ before_install:
   # Make sure everything's up to date.
   - cd /tmp 
   - git clone https://github.com/sstephenson/bats.git
-  - cd /tmp/bats 
+  - cd /tmp/bats
   - sudo ./install.sh /usr/local
 
 install:
+  - env
   - cd $TRAVIS_BUILD_DIR/example 
   - bash -x ./travis-setup-basic.sh
 
