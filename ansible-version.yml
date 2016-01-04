@@ -1,6 +1,6 @@
 ---
 
- - name: Deploy Ansible-verion
+ - name: Ansible Setup deploy Ansible-verion
    hosts: all 
    gather_facts: False
    connection: local
@@ -9,4 +9,5 @@
         template:
           src="{{ ANSIBLE_VERSION_TEMPLATE_PATH }}"
           dest="{{ ANSIBLE_BASEDIR }}/ansible-version"
+          owner="{{ SETUP_USER }}"
           mode=0755
