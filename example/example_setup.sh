@@ -18,10 +18,10 @@ ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[1]}"  # dev
 ANSIBLE_VERSIONS[2]="stable-2.0"
 PYTHON_REQUIREMNTS[2]="$DIR/python_requirements.txt"
 INSTALL_TYPE[2]="git"
-ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"  # dev
+ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"    # v2
 
 # Whats the default version
-ANSIBLE_DEFAULT_VERSION="$ANSIBLE_BASEDIR/dev"
+ANSIBLE_DEFAULT_VERSION="${ANSIBLE_VERSIONS[1]}"
 
 ## Create a temp dir
 filename=$( echo ${0} | sed  's|/||g' )
