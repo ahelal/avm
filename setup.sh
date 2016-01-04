@@ -91,11 +91,10 @@ ansible_install_venv(){
         RUN_COMMAND_AS "virtualenv venv"
 
         # 2nd Check if python requirments file exists and install requirement file
-        if [ -f "${PYTHON_REQUIREMENTS[$i]}" ]; then 
+        if ! [ -z "${PYTHON_REQUIREMENTS[$i]}" ]; then
             echo "$ansible_version > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
             RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
         fi
-
         # 3ed install Ansible in venv
         if [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "pip" ]; then
             echo "$ansible_version > Using 'pip' as installation type"
