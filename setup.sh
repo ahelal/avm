@@ -167,12 +167,12 @@ setup_version_bin() {
   sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
   sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
 
-  RUN_COMMAND_AS '${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
-    -e "ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH" \
-    -e "ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR" \
-    -e "ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION" \
-    -e "SETUP_USER=$SETUP_USER" \
-    -e "ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"'
+  RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
+    -e \"ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH\" \
+    -e \"ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR\" \
+    -e \"ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION\" \
+    -e \"SETUP_USER=$SETUP_USER\" \
+    -e \"ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2\""
 
   echo "Ensuring symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
   sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
