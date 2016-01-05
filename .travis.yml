@@ -18,7 +18,6 @@ before_install:
   - sudo ./install.sh /usr/local
 
 install:
-  - env
   - cd $TRAVIS_BUILD_DIR/example 
   - bash -x ./travis-setup-basic.sh
 
@@ -32,8 +31,4 @@ script:
   - ./installation.sh
   - ansible --version
   # Run setup again with full path setup user
-  - echo "XxxxxxX"
-  - ls -la /home/travis-setup/
-  - ansible -i localhost, -c local -m ping all
-  - echo "XxxxxxX"
   - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-user.sh
