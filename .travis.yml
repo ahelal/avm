@@ -14,19 +14,24 @@ before_install:
   # Make sure everything's up to date.
   - cd /tmp 
   - git clone https://github.com/sstephenson/bats.git
-  - cd /tmp/bats 
+  - cd /tmp/bats
   - sudo ./install.sh /usr/local
 
 install:
   - cd $TRAVIS_BUILD_DIR/example 
-  - bash -x ./travis-test.sh
+  - bash -x ./travis-setup-basic.sh
 
 script:
   - cd $TRAVIS_BUILD_DIR/tests
-  - ./common.sh
-  - ./ansible-version.sh
-  - ./various_runs.sh
-  # Run setup again with full path
-  - bash -x $TRAVIS_BUILD_DIR/example/travis-test.sh
-  - ./installation.sh
+  - ./common_test.sh
+  - ./ansible_version_test.sh
+  - ./various_runs_test.sh
+  # Run setup again with full path Basic
+  - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-basic.sh
+  - ./installation_test.sh
   - ansible --version
+  # Run setup again with full path setup user
+  - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-user.sh
+  # Run tests for setup_user installation
+  - ./common_test.sh
+  - ./installation_setup_user_test.sh

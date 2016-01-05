@@ -63,17 +63,6 @@ RUN_COMMAND_AS() {
   fi
 }
 
-## Get Your shell rc file. TODO: BUG: should get the SETUP_USERs shell.
-##
-if [ "$SHELL" == "/bin/zsh" ]; then
-  export YOUR_SHELL="$SETUP_USER_HOME/.zshrc"
-elif [ "$SHELL" == "/bin/bash" ]; then
-  export YOUR_SHELL="$SETUP_USER_HOME/.bash_profile"
-else
-  echo "Your shell is $SHELL. Sorry not supported"
-  exit 1
-fi
-
 ## Create Virtual environment
 ##
 ansible_install_venv(){
@@ -91,11 +80,10 @@ ansible_install_venv(){
         RUN_COMMAND_AS "virtualenv venv"
 
         # 2nd Check if python requirments file exists and install requirement file
-        if [ -f "${PYTHON_REQUIREMNTS[$i]}" ]; then 
-            echo "$ansible_version > Install python requirments file ${PYTHON_REQUIREMNTS[$i]}"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q --upgrade --requirement ${PYTHON_REQUIREMNTS[$i]}"
+        if ! [ -z "${PYTHON_REQUIREMENTS[$i]}" ]; then
+            echo "$ansible_version > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
         fi
-
         # 3ed install Ansible in venv
         if [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "pip" ]; then
             echo "$ansible_version > Using 'pip' as installation type"
@@ -173,18 +161,18 @@ fi
 setup_version_bin() {
   
   filename=$( echo ${0} | sed  's|/||g' )
-  my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
+  my_temp_dir=$(RUN_COMMAND_AS "mktemp -dt ${filename}.XXXX")
 
   # Get ansible yaml and j2 file from github
-  sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
-  sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
+  RUN_COMMAND_AS "curl -s -o $my_temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS"
+  RUN_COMMAND_AS "curl -s -o $my_temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS"
 
-  sudo ${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
-    -e "ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH" \
-    -e "ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR" \
-    -e "ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION" \
-    -e "ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"
-    -e "SETUP_USER=$SETUP_USER"
+  RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
+    -e ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH \
+    -e ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR \
+    -e ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION \
+    -e SETUP_USER=$SETUP_USER \
+    -e ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"
 
   echo "Ensuring symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
   sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
@@ -192,7 +180,6 @@ setup_version_bin() {
   echo "Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
   ansible-version set $ANSIBLE_DEFAULT_VERSION
 }
-
 
 # Install virtual env
 sudo -H easy_install --upgrade virtualenv
@@ -205,5 +192,3 @@ setup_symlink
 
 # Setup ansible-version binary file
 setup_version_bin
-
-
