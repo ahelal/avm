@@ -26,14 +26,14 @@ script:
   - cd $TRAVIS_BUILD_DIR/tests
   - ./common.sh
   - ./ansible-version.sh
-  - echo "XxxxxxX"
-  - ls -la $HOME/
-  - ansible -i localhost, -c local -m ping all
-  - echo "XxxxxxX"
   - ./various_runs.sh
   # Run setup again with full path Basic
   - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-basic.sh
   - ./installation.sh
   - ansible --version
   # Run setup again with full path setup user
+  - echo "XxxxxxX"
+  - ls -la /home/travis-setup/
+  - ansible -i localhost, -c local -m ping all
+  - echo "XxxxxxX"
   - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-user.sh
