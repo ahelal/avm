@@ -161,11 +161,11 @@ fi
 setup_version_bin() {
   
   filename=$( echo ${0} | sed  's|/||g' )
-  my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
+  my_temp_dir=$(RUN_COMMAND_AS "mktemp -dt ${filename}.XXXX")
 
   # Get ansible yaml and j2 file from github
-  sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
-  sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
+  RUN_COMMAND_AS "curl -s -o $my_temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS"
+  RUN_COMMAND_AS "curl -s -o $my_temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS"
 
   RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
     -e ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH \
