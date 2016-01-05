@@ -34,4 +34,4 @@ script:
   - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-user.sh
   # Run tests for setup_user installation
   - ./common_test.sh
-  - ./installation_setup_user.sh
+  - ./installation_setup_user_test.sh
