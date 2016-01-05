@@ -63,17 +63,6 @@ RUN_COMMAND_AS() {
   fi
 }
 
-## Get Your shell rc file. TODO: BUG: should get the SETUP_USERs shell.
-##
-if [ "$SHELL" == "/bin/zsh" ]; then
-  export YOUR_SHELL="$SETUP_USER_HOME/.zshrc"
-elif [ "$SHELL" == "/bin/bash" ]; then
-  export YOUR_SHELL="$SETUP_USER_HOME/.bash_profile"
-else
-  echo "Your shell is $SHELL. Sorry not supported"
-  exit 1
-fi
-
 ## Create Virtual environment
 ##
 ansible_install_venv(){
@@ -178,7 +167,7 @@ setup_version_bin() {
   sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_YML $ANSIBLE_VERSION_YML_HTTPS
   sudo curl -s -o $my_temp_dir/ANSIBLE_VERSION_J2 $ANSIBLE_VERSION_J2_HTTPS
 
-  sudo ${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
+  ${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/ANSIBLE_VERSION_YML \
     -e "ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH" \
     -e "ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR" \
     -e "ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION" \
