@@ -27,6 +27,7 @@ script:
   - ./common.sh
   - ./ansible-version.sh
   - echo "XxxxxxX"
+  - ls -la $HOME/
   - ansible -i localhost, -c local -m ping all
   - echo "XxxxxxX"
   - ./various_runs.sh
