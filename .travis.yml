@@ -25,6 +25,7 @@ script:
   - cd $TRAVIS_BUILD_DIR/tests
   - ./common_test.sh
   - ./ansible_version_test.sh
+  - ansible -i localhost, -c local -m ping all
   - ./various_runs_test.sh
   # Run setup again with full path Basic
   - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-basic.sh
