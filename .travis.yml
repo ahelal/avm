@@ -18,7 +18,7 @@ before_install:
   - sudo ./install.sh /usr/local
 
 install:
-  - cd $TRAVIS_BUILD_DIR/example 
+  - cd $TRAVIS_BUILD_DIR/example
   - bash -x ./travis-setup-basic.sh
 
 script:

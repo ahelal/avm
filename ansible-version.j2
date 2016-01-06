@@ -39,7 +39,6 @@ show_versions(){
 
 setup_links(){
     versions_list="$(show_versions)"
-    #if [[ $string == *"My long"* ]]
     if ! [[ ${versions_list} == *"'${ANSIBLE_SELECTED_VERSION}'"* ]]; then
         echo "The desired version \"${ANSIBLE_SELECTED_VERSION}\" is not in the version list."
         echo "available version: $versions_list"
@@ -52,7 +51,7 @@ setup_links(){
     for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
     do
         echo "Ensuring symlink ${ANSIBLE_BIN_PATH}/$bin is pointing to $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin"
-        sudo ln -sf $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin ${ANSIBLE_BIN_PATH}/$bin
+        sudo ln -sf $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin ${ANSIBLE_BASEDIR}/bin/${bin}
     done
 }
 
