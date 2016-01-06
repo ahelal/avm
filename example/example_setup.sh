@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Use Master as version
+SETUP_VERSION=master
+
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 ## Install Ansible 1.9.4
@@ -27,6 +30,6 @@ ANSIBLE_DEFAULT_VERSION="${ANSIBLE_VERSIONS[1]}"
 filename=$( echo ${0} | sed  's|/||g' )
 my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
 ## Get setup
-curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/setup.sh -o $my_temp_dir/setup.sh
+curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/setup.sh -o $my_temp_dir/setup.sh
 ## Run the setup
 . $my_temp_dir/setup.sh

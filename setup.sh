@@ -4,6 +4,9 @@ set -e
 ## This current directory.
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+## Setup Version to use
+SETUP_VERSION="${SETUP_VERSION-master}"
+
 ## What user is use for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo ~${SETUP_USER})}"
@@ -34,8 +37,8 @@ COLOR_GRN='\e[0;32m' # green
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
-ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/ansible-version.j2}"
-ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/ansible-version.yml}"
+ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/ansible-version.j2}"
+ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/ansible-version.yml}"
 
 ## Print Error msg
 ##
@@ -177,13 +180,13 @@ setup_version_bin() {
     -e SETUP_USER=$SETUP_USER \
     -e ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"
 
-  echo "Ensuring symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
+  echo "| Creating symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
   sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
 
   for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
   do
-      echo "| Ensuring symlink ${ANSIBLE_BIN_PATH}/$bin is pointing to ${ANSIBLE_BASEDIR}/bin/${bin}"
-      sudo ln -sf ${ANSIBLE_BIN_PATH}/$bin ${ANSIBLE_BASEDIR}/bin/${bin}
+      echo "| Creating global symlink ${ANSIBLE_BASEDIR}/bin/${bin} is pointing to ${ANSIBLE_BIN_PATH}/$bin"
+      sudo ln -sf ${ANSIBLE_BASEDIR}/bin/${bin} ${ANSIBLE_BIN_PATH}/$bin
   done
 
   echo "| Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
