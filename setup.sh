@@ -7,6 +7,9 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ## Setup Version to use
 SETUP_VERSION="${SETUP_VERSION-master}"
 
+## Less verbosity 'could be empty or -q'
+SETUP_VERBOSITY="${SETUP_VERBOSITY--q}"
+
 ## What user is use for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo ~${SETUP_USER})}"
@@ -88,12 +91,12 @@ ansible_install_venv(){
         # 2nd Check if python requirments file exists and install requirement file
         if ! [ -z "${PYTHON_REQUIREMENTS[$i]}" ]; then
             echo "| $ansible_version > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install $SETUP_VERBOSITY --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
         fi
         # 3ed install Ansible in venv
         if [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "pip" ]; then
             echo "| $ansible_version > Using 'pip' as installation type"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q ansible==$ansible_version"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install $SETUP_VERBOSITY ansible==$ansible_version"
         elif [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "git" ]; then
             [[ -z "$(which git)" ]] && msg_exit "git is not installed"
             echo "| $ansible_version > Using 'git' as installation type"
@@ -107,7 +110,7 @@ ansible_install_venv(){
             cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
             # Check out the version and install it
             RUN_COMMAND_AS "git checkout $ansible_version"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py install"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py $SETUP_VERBOSITY install"
         else
             msg_exit "$ansible_version > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
         fi

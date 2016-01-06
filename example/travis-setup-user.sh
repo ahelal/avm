@@ -7,6 +7,9 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 # Use travis commit
 SETUP_VERSION=${TRAVIS_COMMIT_RANGE##*...}
 
+# Be more verbose
+SETUP_VERBOSITY=""
+
 ## Install Ansible 1.9.4
 ANSIBLE_VERSIONS[0]="1.9.4"
 INSTALL_TYPE[0]="pip"
@@ -23,7 +26,7 @@ INSTALL_TYPE[2]="git"
 ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[2]}"  # devel
 
 # Add user for test
-sudo useradd -m -c "travis-setup" travis-setup  -s /bin/bash 
+sudo useradd -m -c "travis-setup" travis-setup -s /bin/bash 
 export SETUP_USER=travis-setup
 
 # Whats the default version

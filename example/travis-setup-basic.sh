@@ -6,6 +6,9 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 SETUP_VERSION=${TRAVIS_COMMIT_RANGE##*...}
 
+# Be more verbose
+SETUP_VERBOSITY=""
+
 ## Install Ansible 1.9.4
 ANSIBLE_VERSIONS[0]="1.9.4"
 INSTALL_TYPE[0]="pip"
