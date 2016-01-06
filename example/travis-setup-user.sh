@@ -6,6 +6,8 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Use travis commit
 COMMIT_HASH=${TRAVIS_COMMIT_RANGE##*...}
+echo "GIT HASH = $COMMIT_HASH"
+
 ANSIBLE_VERSION_J2_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.j2"
 ANSIBLE_VERSION_YML_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.yml"
 
