@@ -22,7 +22,7 @@ exit 0
 }
 
 show_installed(){
-    ansible_link="$(readlink $ANSIBLE_BIN_PATH/ansible)"
+    ansible_link="$(readlink ${ANSIBLE_BASEDIR}/bin/ansible)"
     version="$(echo $ansible_link | sed 's|'"$ANSIBLE_BASEDIR"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
     echo "installed version: \"$version\""
 }
@@ -32,6 +32,7 @@ show_versions(){
     for version in *
     do
         [[ $version =~ ^(ansible-version)$ ]] && continue
+        [[ $version =~ ^(bin)$ ]] && continue
         versions_list+="'${version}' "
     done
     echo "$versions_list"
