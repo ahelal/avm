@@ -5,6 +5,7 @@ echo "Running travis travis-setup-basic.sh"
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Use travis commit
+echo "travis hash $TRAVIS_COMMIT_RANGE"
 COMMIT_HASH=${TRAVIS_COMMIT_RANGE##*...}
 echo "GIT HASH = $COMMIT_HASH"
 
