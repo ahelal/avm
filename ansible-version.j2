@@ -11,11 +11,13 @@ echo """$0
 Usage:
     $0 installed
     $0 versions
+    $0 path <version>
     $0 set <version>
 
 Options:
     installed                   Show available installed ansible virtualenv
     versions                    Show current virtualenv version 
+    path <version>              Print binary path of specifc version
     set <version>               Set selected version for ansible virtualenv 
 """
 exit 0
@@ -38,7 +40,8 @@ show_versions(){
     echo "$versions_list"
 }
 
-setup_links(){
+# Verify version 
+verify_version(){
     versions_list="$(show_versions)"
     if ! [[ ${versions_list} == *"'${ANSIBLE_SELECTED_VERSION}'"* ]]; then
         echo "The desired version \"${ANSIBLE_SELECTED_VERSION}\" is not in the version list."
@@ -49,6 +52,16 @@ setup_links(){
         echo "Your virtualenv seems to be not installed or incorrect reference. \"$ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/\" is not a valid directory"
         exit 1
     fi
+}
+
+print_path(){
+  verify_version
+  echo "${ANSIBLE_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/"
+}
+
+setup_links(){
+    verify_version
+
     for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
     do
         echo "Ensuring symlink $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin :is pointing to ${ANSIBLE_BASEDIR}/bin/${bin}"
@@ -62,6 +75,12 @@ case $1 in
   ;;
 "versions")
   echo "current installed version: $(show_versions)"
+  ;;
+"path")
+  [ -z "$2" ] && echo "path requires a version as an argument." && exit 1
+  version="$2"
+  export ANSIBLE_SELECTED_VERSION="$2"
+  print_path
   ;;
 "set")
   version="$2"

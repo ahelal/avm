@@ -36,3 +36,12 @@
     [[ ${lines[0]} =~ "v1" ]]
 }
 
+@test "Ansible version path v1" {
+    run ansible-version path v1
+    [[ ${lines[0]} =~ "/home/travis/.venv_ansible/v1/venv/bin/" ]]
+}
+
+@test "Ansible version path v2" {
+    run ansible-version path v2
+    [[ ${lines[0]} =~ "/home/travis/.venv_ansible/v2/venv/bin/" ]]
+}
