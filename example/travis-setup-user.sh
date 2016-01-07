@@ -5,9 +5,7 @@ echo "Running travis travis-setup-user.sh"
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Use travis commit
-COMMIT_HASH=${TRAVIS_COMMIT_RANGE##*...}
-ANSIBLE_VERSION_J2_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.j2"
-ANSIBLE_VERSION_YML_HTTPS="https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/ansible-version.yml"
+SETUP_VERSION=${TRAVIS_COMMIT_RANGE##*...}
 
 ## Install Ansible 1.9.4
 ANSIBLE_VERSIONS[0]="1.9.4"
@@ -25,7 +23,7 @@ INSTALL_TYPE[2]="git"
 ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[2]}"  # devel
 
 # Add user for test
-sudo useradd -m -c "travis-setup" travis-setup  -s /bin/bash 
+sudo useradd -m -c "travis-setup" travis-setup -s /bin/bash 
 export SETUP_USER=travis-setup
 
 # Whats the default version
@@ -35,7 +33,7 @@ ANSIBLE_DEFAULT_VERSION="ANSIBLE_VERSIONS[0]"
 filename=$( echo ${0} | sed  's|/||g' )
 my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
 ## Get setup
-curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$COMMIT_HASH/setup.sh -o $my_temp_dir/setup.sh
+curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/setup.sh -o $my_temp_dir/setup.sh
 ## Run the setup
 . $my_temp_dir/setup.sh
 

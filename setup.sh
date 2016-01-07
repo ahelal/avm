@@ -4,6 +4,12 @@ set -e
 ## This current directory.
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+## Setup Version to use
+SETUP_VERSION="${SETUP_VERSION-master}"
+
+## Less verbosity 'could be empty or -q'
+SETUP_VERBOSITY="${SETUP_VERBOSITY--q}"
+
 ## What user is use for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo ~${SETUP_USER})}"
@@ -34,19 +40,19 @@ COLOR_GRN='\e[0;32m' # green
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
-ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/ansible-version.j2}"
-ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/master/ansible-version.yml}"
+ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/ansible-version.j2}"
+ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/ansible-version.yml}"
 
 ## Print Error msg
 ##
 msg_exit() {
-  printf "$COLOR_RED$@$COLOR_END\nExiting...\n" && exit 1
+  printf "> $COLOR_RED$@$COLOR_END\nExiting...\n" && exit 1
 }
 
 ## Print warning msg
 ##
 msg_warning() {
-  printf "$COLOR_YEL$@$COLOR_END\n"
+  printf "| $COLOR_YEL$@$COLOR_END\n"
 }
 
 ## Check setup home dir
@@ -66,7 +72,10 @@ RUN_COMMAND_AS() {
 ## Create Virtual environment
 ##
 ansible_install_venv(){
-    RUN_COMMAND_AS "mkdir -p $ANSIBLE_BASEDIR"
+    # Create base dir
+    RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}"
+    # Create a bin dir in base dir
+    RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}/bin"
     for i in $(seq 1 ${#ANSIBLE_VERSIONS[@]})
     do
         i=$(($i-1))
@@ -76,21 +85,21 @@ ansible_install_venv(){
         cd "${ANSIBLE_BASEDIR}/${ansible_version}"
         
         # 1st create virtual env for this version
-        echo "$ansible_version > Creating/updating venv for ansible $ansible_version"
+        echo "| $ansible_version > Creating/updating venv for ansible $ansible_version"
         RUN_COMMAND_AS "virtualenv venv"
 
         # 2nd Check if python requirments file exists and install requirement file
         if ! [ -z "${PYTHON_REQUIREMENTS[$i]}" ]; then
-            echo "$ansible_version > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
+            echo "| $ansible_version > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install $SETUP_VERBOSITY --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
         fi
         # 3ed install Ansible in venv
         if [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "pip" ]; then
-            echo "$ansible_version > Using 'pip' as installation type"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install -q ansible==$ansible_version"
+            echo "| $ansible_version > Using 'pip' as installation type"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install $SETUP_VERBOSITY ansible==$ansible_version"
         elif [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "git" ]; then
             [[ -z "$(which git)" ]] && msg_exit "git is not installed"
-            echo "$ansible_version > Using 'git' as installation type"
+            echo "| $ansible_version > Using 'git' as installation type"
             if [ -d "ansible/.git" ]; then
                 cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
                 RUN_COMMAND_AS "git pull --rebase"
@@ -101,7 +110,7 @@ ansible_install_venv(){
             cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
             # Check out the version and install it
             RUN_COMMAND_AS "git checkout $ansible_version"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py install"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py $SETUP_VERBOSITY install"
         else
             msg_exit "$ansible_version > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
         fi
@@ -114,15 +123,15 @@ setup_symlink() {
   cd $ANSIBLE_BASEDIR
   # Create link for v1, v2, dev
   if ! [ -z "$ANSIBLE_V1_PATH" ]; then
-    echo "Creating ${ANSIBLE_BASEDIR}/v1 to ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH"
+    echo "| Creating ${ANSIBLE_BASEDIR}/v1 to ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH"
     sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH ${ANSIBLE_BASEDIR}/v1
   fi
   if ! [ -z "$ANSIBLE_V2_PATH" ]; then
-    echo "Creating ${ANSIBLE_BASEDIR}/v2 ${ANSIBLE_BASEDIR}/${ANSIBLE_V2_PATH}"
+    echo "| Creating ${ANSIBLE_BASEDIR}/v2 ${ANSIBLE_BASEDIR}/${ANSIBLE_V2_PATH}"
     sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V2_PATH ${ANSIBLE_BASEDIR}/v2
   fi
   if ! [ -z "$ANSIBLE_DEV_PATH" ]; then 
-    echo "Creating ${ANSIBLE_BASEDIR}/dev ${ANSIBLE_BASEDIR}/${ANSIBLE_DEV_PATH}"
+    echo "| Creating ${ANSIBLE_BASEDIR}/dev ${ANSIBLE_BASEDIR}/${ANSIBLE_DEV_PATH}"
     sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_DEV_PATH ${ANSIBLE_BASEDIR}/dev
   fi
 }
@@ -174,10 +183,16 @@ setup_version_bin() {
     -e SETUP_USER=$SETUP_USER \
     -e ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"
 
-  echo "Ensuring symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
+  echo "| Creating symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
   sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
 
-  echo "Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
+  for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
+  do
+      echo "| Creating global symlink ${ANSIBLE_BASEDIR}/bin/${bin} is pointing to ${ANSIBLE_BIN_PATH}/$bin"
+      sudo ln -sf ${ANSIBLE_BASEDIR}/bin/${bin} ${ANSIBLE_BIN_PATH}/$bin
+  done
+
+  echo "| Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
   ansible-version set $ANSIBLE_DEFAULT_VERSION
 }
 
