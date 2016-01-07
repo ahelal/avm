@@ -1,35 +1,53 @@
 #!/bin/bash
 set -e
 
-# Use Master as version
-SETUP_VERSION=master
+## This is an example setup script that you would encapsulate the installation 
 
+# What version of ansible setup to use 
+SETUP_VERSION="master"
+
+# Whats my path
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-## Install Ansible 1.9.4
+## Array of versions to install
+
+## 1. Install Ansible 1.9.4
 ANSIBLE_VERSIONS[0]="1.9.4"
 INSTALL_TYPE[0]="pip"
-ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
+# Make this the default for v1
+ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"
 
-## Install Ansible dev
+## 2. Install Ansible dev
 ANSIBLE_VERSIONS[1]="devel"
 PYTHON_REQUIREMENTS[1]="$DIR/python_requirements.txt"
 INSTALL_TYPE[1]="git"
-ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[1]}"  # dev
+# Make this the default for development 
+ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[1]}"
 
-## Install Ansible stable-2.0 
+## 3. Install Ansible stable-2.0 
 ANSIBLE_VERSIONS[2]="stable-2.0"
 PYTHON_REQUIREMENTS[2]="$DIR/python_requirements.txt"
 INSTALL_TYPE[2]="git"
-ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"    # v2
+# Make this default for v2
+ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"   
 
-# Whats the default version
+## 4. Install Ansible 1.9.3
+ANSIBLE_VERSIONS[3]="stable-2.0"
+PYTHON_REQUIREMENTS[3]="$DIR/python_requirements.txt"
+INSTALL_TYPE[3]="pip"
+
+# Whats the system default version
 ANSIBLE_DEFAULT_VERSION="${ANSIBLE_VERSIONS[1]}"
 
-## Create a temp dir
+
+## Create a temp dir to download the setup script
 filename=$( echo ${0} | sed  's|/||g' )
 my_temp_dir="$(mktemp -dt ${filename}.XXXX)"
-## Get setup
+## Get setup script from gitub
 curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/setup.sh -o $my_temp_dir/setup.sh
 ## Run the setup
 . $my_temp_dir/setup.sh
+
+# You can do other stuff here like install test-kitchen or whatever
+
+exit 0
