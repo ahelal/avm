@@ -193,7 +193,7 @@ setup_version_bin() {
   done
 
   echo "| Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
-  ansible-version set $ANSIBLE_DEFAULT_VERSION
+  RUN_COMMAND_AS "ansible-version set $ANSIBLE_DEFAULT_VERSION"
 }
 
 # Install virtual env

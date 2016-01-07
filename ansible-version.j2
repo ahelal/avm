@@ -65,7 +65,7 @@ setup_links(){
     for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
     do
         echo "Ensuring symlink $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin :is pointing to ${ANSIBLE_BASEDIR}/bin/${bin}"
-        sudo ln -sf $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin ${ANSIBLE_BASEDIR}/bin/${bin}
+        ln -sf $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin ${ANSIBLE_BASEDIR}/bin/${bin}
     done
 }
 
