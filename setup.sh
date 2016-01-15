@@ -123,15 +123,15 @@ setup_symlink() {
   cd $ANSIBLE_BASEDIR
   # Create link for v1, v2, dev
   if ! [ -z "$ANSIBLE_V1_PATH" ]; then
-    echo "| Creating ${ANSIBLE_BASEDIR}/v1 to ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH"
+    echo "| Setup default symlink for V1 ${ANSIBLE_BASEDIR}/v1 to ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH"
     sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH ${ANSIBLE_BASEDIR}/v1
   fi
   if ! [ -z "$ANSIBLE_V2_PATH" ]; then
-    echo "| Creating ${ANSIBLE_BASEDIR}/v2 ${ANSIBLE_BASEDIR}/${ANSIBLE_V2_PATH}"
+    echo "| Setup default symlink for V2 ${ANSIBLE_BASEDIR}/v2 ${ANSIBLE_BASEDIR}/${ANSIBLE_V2_PATH}"
     sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V2_PATH ${ANSIBLE_BASEDIR}/v2
   fi
   if ! [ -z "$ANSIBLE_DEV_PATH" ]; then 
-    echo "| Creating ${ANSIBLE_BASEDIR}/dev ${ANSIBLE_BASEDIR}/${ANSIBLE_DEV_PATH}"
+    echo "| Setup default symlink for DEV ${ANSIBLE_BASEDIR}/dev ${ANSIBLE_BASEDIR}/${ANSIBLE_DEV_PATH}"
     sudo ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_DEV_PATH ${ANSIBLE_BASEDIR}/dev
   fi
 }
