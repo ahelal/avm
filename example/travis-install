@@ -20,7 +20,6 @@ ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
 
 ## Install Ansible 2.0
 ANSIBLE_VERSIONS[1]="2.0.0.2"
-PYTHON_REQUIREMENTS[1]="$DIR/python_requirements.txt"
 INSTALL_TYPE[1]="pip"
 ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[1]}"  # v2
 
