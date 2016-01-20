@@ -2,6 +2,9 @@
 set -e
 echo "Running travis travis-setup-basic.sh"
 
+echo "Travis env"
+env
+
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 SETUP_VERSION="${TRAVIS_COMMIT_RANGE##*...}"
