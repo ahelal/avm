@@ -33,7 +33,7 @@ ANSIBLE_DEFAULT_VERSION="v1"
 ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
 
 ## Should we force venv installation
-FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-''}"
+FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-'no'}"
 
 COLOR_END='\e[0m'    # End of color
 COLOR_RED='\e[0;31m' # Red
@@ -88,7 +88,7 @@ ansible_install_venv(){
         cd "${ANSIBLE_BASEDIR}/${ansible_version}"
         
         # 1st create virtual env for this version
-        if [ "$FORCE_VENV_INSTALLATION" ] || ![ -f -d venv ]; then
+        if [ "$FORCE_VENV_INSTALLATION" != "no" ] && [ ! -d "./venv" ]; then
           echo "| $ansible_version > Creating/updating venv for ansible $ansible_version"
           RUN_COMMAND_AS "virtualenv venv"
         else
