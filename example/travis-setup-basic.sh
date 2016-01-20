@@ -4,7 +4,13 @@ echo "Running travis travis-setup-basic.sh"
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-SETUP_VERSION=${TRAVIS_COMMIT_RANGE##*...}
+SETUP_VERSION="${TRAVIS_COMMIT_RANGE##*...}"
+if [ -z "${SETUP_VERSION}" ]; then
+    echo "Failed to get commit range from travis 'SETUP_VERSION'=${SETUP_VERSION}"
+    exit 1
+else
+    echo "Using setup version=${SETUP_VERSION}"
+fi
 
 # Be more verbose
 SETUP_VERBOSITY=""

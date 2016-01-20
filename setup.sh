@@ -32,6 +32,9 @@ ANSIBLE_DEFAULT_VERSION="v1"
 ## What version to use for each v1,v2,dev
 ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
 
+## Should we force venv installation
+FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-''}"
+
 COLOR_END='\e[0m'    # End of color
 COLOR_RED='\e[0;31m' # Red
 COLOR_YEL='\e[0;33m' # Yellow
@@ -85,8 +88,12 @@ ansible_install_venv(){
         cd "${ANSIBLE_BASEDIR}/${ansible_version}"
         
         # 1st create virtual env for this version
-        echo "| $ansible_version > Creating/updating venv for ansible $ansible_version"
-        RUN_COMMAND_AS "virtualenv venv"
+        if [ "$FORCE_VENV_INSTALLATION" ] || ![ -f -d venv ]; then
+          echo "| $ansible_version > Creating/updating venv for ansible $ansible_version"
+          RUN_COMMAND_AS "virtualenv venv"
+        else
+          echo "| $ansible_version > venv $ansible_version exists"
+        fi
 
         # 2nd Check if python requirments file exists and install requirement file
         if ! [ -z "${PYTHON_REQUIREMENTS[$i]}" ]; then
