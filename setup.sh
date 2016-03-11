@@ -179,7 +179,6 @@ if [ "$system" == "Linux" ]; then
       echo " Installing ${SETUP_RUBY_VERSION}"
       sudo apt-get install -y ${SETUP_RUBY_VERSION}
     fi
-    exit 1
   else
     msg_warning "Your linux system was not tested. It might work"
   fi
