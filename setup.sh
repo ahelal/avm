@@ -15,7 +15,7 @@ SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo ~${SETUP_USER})}"
 
 ## Ubuntu apt pre-req
-UBUNTU_PKGS="${UBUNTU_PKGS:-python-setuptools python-dev build-essential libffi-dev libssl-dev curl ruby}"
+UBUNTU_PKGS="${UBUNTU_PKGS:-python-setuptools python-dev build-essential libffi-dev libssl-dev curl}"
 
 ## Ansible virtual environment directory
 ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
@@ -31,6 +31,12 @@ ANSIBLE_DEFAULT_VERSION="v1"
 
 ## What version to use for each v1,v2,dev
 ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
+
+## Ubuntu Ruby
+SETUP_INSTALL_RUBY="${SETUP_INSTALL_RUBY:-""}"
+SETUP_RUBY_VERSION="${SETUP_RUBY_VERSION:-"ruby1.9"}"
+SETUP_RUBY_CUSTOM_REPO_INSTALL="${SETUP_RUBY_CUSTOM_REPO_INSTALL:-""}"
+SETUP_RUBY_CUSTOM_REPO="${SETUP_RUBY_CUSTOM_REPO:-"ppa:brightbox/ruby-ng-experimental"}"
 
 ## Should we force venv installation
 FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-'no'}"
@@ -163,6 +169,17 @@ if [ "$system" == "Linux" ]; then
   distro=$(lsb_release -i)
   if [[ $distro == *"Ubuntu"* ]] || [[ $distro == *"Debian"* ]] ;then
     sudo apt-get install -y $UBUNTU_PKGS
+    # Ruby 
+    if ! [ -z "$SETUP_INSTALL_RUBY" ]; then
+      if ! [ -z "$SETUP_RUBY_CUSTOM_REPO_INSTALL" ] ;then
+        echo " Installing custom Ruby repo ${SETUP_RUBY_CUSTOM_REPO}"
+        sudo add-apt-repository ${SETUP_RUBY_CUSTOM_REPO} -y
+        sudo apt-get update
+      fi
+      echo " Installing ${SETUP_RUBY_VERSION}"
+      sudo apt-get install -y ${SETUP_RUBY_VERSION}
+    fi
+    exit 1
   else
     msg_warning "Your linux system was not tested. It might work"
   fi
