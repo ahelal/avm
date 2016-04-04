@@ -7,7 +7,12 @@ env
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-SETUP_VERSION="${TRAVIS_COMMIT_RANGE##*...}"
+# Use travis commit
+if [ -z "${TRAVIS_COMMIT_RANGE}" ]; then
+    SETUP_VERSION="${TRAVIS_COMMIT_RANGE##*...}"
+else
+    SETUP_VERSION="${TRAVIS_COMMIT}"
+fi
 if [ -z "${SETUP_VERSION}" ]; then
     echo "Failed to get commit range from travis 'SETUP_VERSION'=${SETUP_VERSION}"
     exit 1
