@@ -9,9 +9,9 @@
     [[ ${lines[1]} =~ "Usage" ]]
 }
 
-@test "Ansible version show installed default version v1" {
+@test "Ansible version show installed default version v2" {
     run ansible-version installed
-    [[ ${lines[0]} =~ "v1" ]]
+    [[ ${lines[0]} =~ "v2" ]]
 }
 
 @test "Ansible version show versions in virtualvenv 1.9.4 stable-2.0 v1 v2" {
