@@ -24,13 +24,15 @@ ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
 DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 
 ## Array of versions of ansiblet to install and what requirements files for each version
-ANSIBLE_VERSIONS[0]="${ANSIBLE_VERSIONS[0]:-"1.9.4"}"
+ANSIBLE_VERSIONS[0]="${ANSIBLE_VERSIONS[0]:-"1.9.6"}"
 
 ## Default version to use
-ANSIBLE_DEFAULT_VERSION="v2"
+ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-'v2'}"
 
-## What version to use for each v1,v2,dev
-ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
+## What version to use for each v1,v2,dev symlink
+ANSIBLE_V1_PATH="${ANSIBLE_V1_PATH-''}"    # i.e. 'ANSIBLE_VERSIONS[0]''
+ANSIBLE_V2_PATH="${ANSIBLE_V2_PATH-''}"    # i.e. 'ANSIBLE_VERSIONS[1]''
+ANSIBLE_DEV_PATH="${ANSIBLE_DEV_PATH-''}" # i.e. 'ANSIBLE_VERSIONS[2]''
 
 ## Ubuntu Ruby
 SETUP_INSTALL_RUBY="${SETUP_INSTALL_RUBY:-""}"
@@ -92,7 +94,7 @@ ansible_install_venv(){
 
         RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}/${ansible_version}"
         cd "${ANSIBLE_BASEDIR}/${ansible_version}"
-        
+
         # 1st create virtual env for this version
         if [ "$FORCE_VENV_INSTALLATION" != "no" ] && [ ! -d "./venv" ]; then
           echo "| $ansible_version > Creating/updating venv for ansible $ansible_version"
@@ -143,7 +145,7 @@ setup_symlink() {
     echo "| Setup default symlink for V2 ${ANSIBLE_BASEDIR}/v2 ${ANSIBLE_BASEDIR}/${ANSIBLE_V2_PATH}"
     RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V2_PATH ${ANSIBLE_BASEDIR}/v2"
   fi
-  if ! [ -z "$ANSIBLE_DEV_PATH" ]; then 
+  if ! [ -z "$ANSIBLE_DEV_PATH" ]; then
     echo "| Setup default symlink for DEV ${ANSIBLE_BASEDIR}/dev ${ANSIBLE_BASEDIR}/${ANSIBLE_DEV_PATH}"
     RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_DEV_PATH ${ANSIBLE_BASEDIR}/dev"
   fi
@@ -169,7 +171,7 @@ if [ "$system" == "Linux" ]; then
   distro=$(lsb_release -i)
   if [[ $distro == *"Ubuntu"* ]] || [[ $distro == *"Debian"* ]] ;then
     sudo apt-get install -y $UBUNTU_PKGS
-    # Ruby 
+    # Ruby
     if ! [ -z "$SETUP_INSTALL_RUBY" ]; then
       if ! [ -z "$SETUP_RUBY_CUSTOM_REPO_INSTALL" ] ;then
         echo " Installing custom Ruby repo ${SETUP_RUBY_CUSTOM_REPO}"
@@ -191,7 +193,7 @@ fi
 ## Setup ansible-version binary file
 ##
 setup_version_bin() {
-  
+
   filename=$( echo ${0} | sed  's|/||g' )
   my_temp_dir=$(RUN_COMMAND_AS "mktemp -dt ${filename}.XXXX")
 
@@ -208,7 +210,7 @@ setup_version_bin() {
 
   # Require to run sudo as assumption is it will be global
   echo "| Creating symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
-  sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version 
+  sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version
 
   for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
   do
