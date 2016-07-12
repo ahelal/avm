@@ -35,7 +35,7 @@ INSTALL_TYPE[1]="git"
 ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[1]}"  # v2
 
 # Whats the default version
-ANSIBLE_DEFAULT_VERSION="${ANSIBLE_VERSIONS[1]}"
+ANSIBLE_DEFAULT_VERSION="v2"
 
 ## Create a temp dir
 filename=$( echo ${0} | sed  's|/||g' )
