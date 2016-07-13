@@ -13,18 +13,18 @@ SETUP_VERSION="master"
 # Be more verbose
 SETUP_VERBOSITY=""
 
-## Install Ansible 1.9.4
-ANSIBLE_VERSIONS[0]="1.9.4"
+## Install Ansible 1.9.6
+ANSIBLE_VERSIONS[0]="1.9.6"
 INSTALL_TYPE[0]="pip"
 ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"    # v1
 
 ## Install Ansible 2.0
-ANSIBLE_VERSIONS[1]="2.0.0.2"
+ANSIBLE_VERSIONS[1]="2.0.20.0"
 INSTALL_TYPE[1]="pip"
 ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[1]}"  # v2
 
 # Whats the default version
-ANSIBLE_DEFAULT_VERSION="ANSIBLE_VERSIONS[0]"
+ANSIBLE_DEFAULT_VERSION="v2"
 
 ## Create a temp dir
 filename=$( echo ${0} | sed  's|/||g' )
