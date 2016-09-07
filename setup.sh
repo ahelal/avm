@@ -142,7 +142,7 @@ setup_label_symlink() {
   cd $ANSIBLE_BASEDIR
   if ! [ -z "${ANSIBLE_LABEL[$i]}" ]; then
     echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]}"
-    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[0]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}"
+    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}"
   fi
 }
 
