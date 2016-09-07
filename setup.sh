@@ -43,6 +43,9 @@ SETUP_RUBY_CUSTOM_REPO="${SETUP_RUBY_CUSTOM_REPO:-"ppa:brightbox/ruby-ng-experim
 ## Should we force venv installation
 FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-'no'}"
 
+## Ignore sudo errors
+SETUP_SUDO_IGNORE="${SETUP_SUDO_IGNORE-0}"
+
 COLOR_END='\e[0m'    # End of color
 COLOR_RED='\e[0;31m' # Red
 COLOR_YEL='\e[0;33m' # Yellow
@@ -159,7 +162,7 @@ setup_symlink() {
 ## Check if I can change to root
 ##
 CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1 | grep "load" | wc -l)
-if [ ${CAN_I_RUN_SUDO} -eq 0 ]; then
+if [ ${CAN_I_RUN_SUDO} -eq 0 ] && [ "${SETUP_SUDO_IGNORE}" == "0"  ]; then
   msg_exit "$USER can't run the Sudo command. You might have sudo rights, But password is required. you can run$COLOR_END $COLOR_GRN'sudo whoami && $0'$COLOR_END to use the cached password in sudo"
   exit 1
 fi
