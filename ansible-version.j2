@@ -7,18 +7,20 @@ ANSIBLE_SELECTED_VERSION="{{ ANSIBLE_SELECTED_VERSION }}"
 
 #Function: help
 print_help() {
-echo """$0 
+echo """$0
 Usage:
-    $0 installed
-    $0 versions
+    $0 info
+    $0 list
     $0 path <version>
-    $0 set <version>
+    $0 use <version>
+    $0 activate [version]
 
 Options:
-    installed                   Show available installed ansible virtualenv
-    versions                    Show current virtualenv version 
+    info                        Show available installed ansible virtualenv
+    list                        List current virtualenv version
     path <version>              Print binary path of specifc version
-    set <version>               Set selected version for ansible virtualenv 
+    use <version>               Use a <version> for ansible virtualenv
+    activate [version]          Activate python in the ansible virtualenv
 """
 exit 0
 }
@@ -40,7 +42,7 @@ show_versions(){
     echo "$versions_list"
 }
 
-# Verify version 
+# Verify version
 verify_version(){
     versions_list="$(show_versions)"
     if ! [[ ${versions_list} == *"'${ANSIBLE_SELECTED_VERSION}'"* ]]; then
@@ -70,7 +72,7 @@ setup_links(){
 }
 
 case $1 in
-"installed")
+"info" | "installed")
   show_installed
   ;;
 "versions")
@@ -82,9 +84,9 @@ case $1 in
   export ANSIBLE_SELECTED_VERSION="$2"
   print_path
   ;;
-"set")
+"use" | "set")
   version="$2"
-  [ -z "$2" ] && echo "set requires a version as an argument." && exit 1
+  [ -z "$2" ] && echo "use requires a version as an argument." && exit 1
   export ANSIBLE_SELECTED_VERSION="$2"
   setup_links
   ;;
