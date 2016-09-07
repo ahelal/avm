@@ -141,8 +141,8 @@ setup_label_symlink() {
   i=${1} # our index in the array
   cd $ANSIBLE_BASEDIR
   if ! [ -z "${ANSIBLE_LABEL[$i]}" ]; then
-    echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[0]}"
-    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[0]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL}[$i]"
+    echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]}"
+    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[0]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}"
   fi
 }
 
