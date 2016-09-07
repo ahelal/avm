@@ -24,15 +24,12 @@ ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
 DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 
 ## Array of versions of ansiblet to install and what requirements files for each version
-ANSIBLE_VERSIONS[0]="${ANSIBLE_VERSIONS[0]:-"1.9.6"}"
+ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.1.1.0"}"
+## Label of version if any
+ANSIBLE_LABEL="${ANSIBLE_LABEL:-"V2"}"
 
 ## Default version to use
 ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-'v2'}"
-
-## What version to use for each v1,v2,dev symlink
-ANSIBLE_V1_PATH="${ANSIBLE_V1_PATH-}"    # i.e. 'ANSIBLE_VERSIONS[0]''
-ANSIBLE_V2_PATH="${ANSIBLE_V2_PATH-}"    # i.e. 'ANSIBLE_VERSIONS[1]''
-ANSIBLE_DEV_PATH="${ANSIBLE_DEV_PATH-}" # i.e. 'ANSIBLE_VERSIONS[2]''
 
 ## Ubuntu Ruby
 SETUP_INSTALL_RUBY="${SETUP_INSTALL_RUBY:-""}"
@@ -132,25 +129,20 @@ ansible_install_venv(){
         else
             msg_exit "$ansible_version > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
         fi
+      # 4th check if we need to setup a label for our installation
+      setup_label_symlink $i
+
       done
 }
 
-## Setup default ansible version for v1,v2 and dev
+## Setup ansible version label symlink
 ##
-setup_symlink() {
+setup_label_symlink() {
+  i=${1} # our index in the array
   cd $ANSIBLE_BASEDIR
-  # Create link for v1, v2, dev
-  if ! [ -z "$ANSIBLE_V1_PATH" ]; then
-    echo "| Setup default symlink for V1 ${ANSIBLE_BASEDIR}/v1 to ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH"
-    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V1_PATH ${ANSIBLE_BASEDIR}/v1"
-  fi
-  if ! [ -z "$ANSIBLE_V2_PATH" ]; then
-    echo "| Setup default symlink for V2 ${ANSIBLE_BASEDIR}/v2 ${ANSIBLE_BASEDIR}/${ANSIBLE_V2_PATH}"
-    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_V2_PATH ${ANSIBLE_BASEDIR}/v2"
-  fi
-  if ! [ -z "$ANSIBLE_DEV_PATH" ]; then
-    echo "| Setup default symlink for DEV ${ANSIBLE_BASEDIR}/dev ${ANSIBLE_BASEDIR}/${ANSIBLE_DEV_PATH}"
-    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/$ANSIBLE_DEV_PATH ${ANSIBLE_BASEDIR}/dev"
+  if ! [ -z "${ANSIBLE_LABEL[$i]}" ]; then
+    echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[0]}"
+    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[0]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL}[$i]"
   fi
 }
 
@@ -215,7 +207,7 @@ setup_version_bin() {
   echo "| Creating symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
   sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version
 
-  for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault
+  for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault ansible-console
   do
       # Require to run sudo as assumption is it will be global
       echo "| Creating global symlink ${ANSIBLE_BASEDIR}/bin/${bin} is pointing to ${ANSIBLE_BIN_PATH}/$bin"
@@ -232,8 +224,6 @@ sudo -H easy_install --upgrade virtualenv
 # Install ansible in the virtual envs
 ansible_install_venv
 
-# Setup default symlink
-setup_symlink
 
 # Setup ansible-version binary file
 setup_version_bin
