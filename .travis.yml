@@ -1,37 +1,33 @@
 ---
-dist: trusty
+language: ruby
+rvm:
+  - 2.2
 sudo: required
-language: python
-matrix:
-  allow_failures:
-    - os: osx
+services:
+  - docker
 
-os:
-  - linux
-  - osx
+env:
+  - KITCHEN_TEST="simple-ubuntu1404"
+  - KITCHEN_TEST="simple-ubuntu1604"
+  - KITCHEN_TEST="advanced-ubuntu1404"
+  - KITCHEN_TEST="advanced-ubuntu1604"
 
 before_install:
   # Make sure everything's up to date.
-  - cd /tmp 
-  - git clone https://github.com/sstephenson/bats.git
-  - cd /tmp/bats
-  - sudo ./install.sh /usr/local
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq python-apt python-pycurl git python-pip ruby ruby-dev build-essential autoconf
+  - gem install bundler
+  # Get ansible install
+  - ruby --version
+  - python --version
+  - pip --version
+  - bundler --version
 
 install:
-  - cd $TRAVIS_BUILD_DIR/example
-  - bash -x ./travis-setup-basic.sh
+  - bundle install
 
 script:
-  - cd $TRAVIS_BUILD_DIR/tests
-  - ./common_test.sh
-  - ./ansible_version_test.sh
-  - ./various_runs_test.sh
-  # Run setup again with full path Basic
-  - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-basic.sh
-  - ./installation_test.sh
-  - ansible --version
-  # Run setup again with full path setup user
-  - bash -x $TRAVIS_BUILD_DIR/example/travis-setup-user.sh
-  # Run tests for setup_user installation
-  - ./common_test.sh
-  - ./installation_setup_user_test.sh
+    - bundle exec kitchen test $KITCHEN_TEST
+
+after_success:
+    - echo "Success"
