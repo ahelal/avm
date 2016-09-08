@@ -7,8 +7,13 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 ## Setup Version to use
 SETUP_VERSION="${SETUP_VERSION-master}"
 
-## Less verbosity 'could be empty or -q'
-SETUP_VERBOSITY="${SETUP_VERBOSITY--q}"
+## 'could be empty or v or vv'
+SETUP_VERBOSITY="${SETUP_VERBOSITY-}"
+if [ "${SETUP_VERBOSITY}" == "vv" ]; then
+  echo "| verbosity level 2"
+  set -x
+fi
+
 
 ## What user is use for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
@@ -51,8 +56,8 @@ COLOR_GRN='\e[0;32m' # green
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
-ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/ansible-version.j2}"
-ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/ansible-version.yml}"
+ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/avm.j2}"
+ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/avm.yml}"
 
 ## Print Error msg
 ##
@@ -73,11 +78,22 @@ msg_warning() {
 ## Run command as a different user if you have SETUP_USER env set
 ##
 RUN_COMMAND_AS() {
+
   if [ "$SETUP_USER" == "$USER" ]; then
-    $1
+    command_2_run="$1"
   else
-    sudo su $SETUP_USER -c "$1"
+    command_2_run=sudo su $SETUP_USER -c "$1"
   fi
+
+  case ${SETUP_VERBOSITY} in
+    '')
+      ${command_2_run} > /dev/null
+    ;;
+    *)
+      (>&2 echo "| Exec ${command_2_run}")
+      ${command_2_run}
+      ;;
+  esac
 }
 
 ## Create Virtual environment
@@ -125,30 +141,36 @@ ansible_install_venv(){
             cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
             # Check out the version and install it
             RUN_COMMAND_AS "git checkout $ansible_version"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py $SETUP_VERBOSITY install"
+            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py install"
         else
             msg_exit "$ansible_version > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
         fi
+
       # 4th check if we need to setup a label for our installation
       setup_label_symlink $i
-
       done
 }
 
 ## check symlink dir and create if needed
 ##
-dir_symlink(){
+manage_symlink(){
   set +e
   # $1 src
   # $2 dest (link)
+  # $3 global (will run with sudo)
   actual_dest=$(readlink $2)
-  if [ "${actual_dest}" != "${1}" ] && ! [ -z "${actual_dest}" ]
-    rm -f ${actual_dest}
-    echo "!!!!!!!LINK-remove"
+  if [ "${actual_dest}" != "${1}" ] && ! [ -z "${actual_dest}" ]; then
+    ! [[ -z "${SETUP_VERBOSITY}" ]] && echo "|D Attempt to Removing ${2}"
+    RUN_COMMAND_AS "rm -f ${2}"
   fi
-    echo "!!!!!!!LINK-DO"
-  RUN_COMMAND_AS "ln -sf ${1} ${2}"
   set -e
+  ! [[ -z "${SETUP_VERBOSITY}" ]] && echo "|D Creating symlink to ${1} ${2}"
+
+  if [ -z "${3}" ]; then
+    run_sudo="sudo "
+  fi
+
+  RUN_COMMAND_AS "${run_sudo}ln -sf ${1} ${2}"
 }
 
 ## Setup ansible version label symlink
@@ -158,7 +180,7 @@ setup_label_symlink() {
   cd $ANSIBLE_BASEDIR
   if ! [ -z "${ANSIBLE_LABEL[$i]}" ]; then
     echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]}"
-    actual_dest ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}
+    manage_symlink ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}
   fi
 }
 
@@ -182,16 +204,6 @@ if [ "$system" == "Linux" ]; then
   distro=$(lsb_release -i)
   if [[ $distro == *"Ubuntu"* ]] || [[ $distro == *"Debian"* ]] ;then
     sudo apt-get install -y $UBUNTU_PKGS
-    # Ruby
-    if ! [ -z "$SETUP_INSTALL_RUBY" ]; then
-      if ! [ -z "$SETUP_RUBY_CUSTOM_REPO_INSTALL" ] ;then
-        echo " Installing custom Ruby repo ${SETUP_RUBY_CUSTOM_REPO}"
-        sudo add-apt-repository ${SETUP_RUBY_CUSTOM_REPO} -y
-        sudo apt-get update
-      fi
-      echo " Installing ${SETUP_RUBY_VERSION}"
-      sudo apt-get install -y ${SETUP_RUBY_VERSION}
-    fi
   else
     msg_warning "Your linux system was not tested. It might work"
   fi
@@ -201,7 +213,7 @@ fi
 [[ -z "$(which curl)" ]] && msg_exit "curl is not in your path. Please install it or reference it in your path"
 [[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not in your path."
 
-## Setup ansible-version binary file
+## Setup avm binary file
 ##
 setup_version_bin() {
 
@@ -220,18 +232,18 @@ setup_version_bin() {
     -e ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/ANSIBLE_VERSION_J2"
 
   # Require to run sudo as assumption is it will be global
-  echo "| Creating symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
-  actual_dest ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version
+  echo "| Creating symlink ${ANSIBLE_BASEDIR}/avm ${ANSIBLE_BIN_PATH}/avm"
+  manage_symlink ${ANSIBLE_BASEDIR}/avm ${ANSIBLE_BIN_PATH}/avm
 
   for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault ansible-console
   do
       # Require to run sudo as assumption is it will be global
       echo "| Creating global symlink ${ANSIBLE_BASEDIR}/bin/${bin} is pointing to ${ANSIBLE_BIN_PATH}/$bin"
-      actual_dest ${ANSIBLE_BASEDIR}/bin/${bin} ${ANSIBLE_BIN_PATH}/$bin
+      manage_symlink ${ANSIBLE_BASEDIR}/bin/${bin} ${ANSIBLE_BIN_PATH}/$bin RUN_SUDO
   done
 
   echo "| Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
-  RUN_COMMAND_AS "ansible-version set $ANSIBLE_DEFAULT_VERSION"
+  RUN_COMMAND_AS "avm set $ANSIBLE_DEFAULT_VERSION"
 }
 
 # Install virtual env
@@ -240,5 +252,9 @@ sudo -H easy_install --upgrade virtualenv
 # Install ansible in the virtual envs
 ansible_install_venv
 
-# Setup ansible-version binary file
+# Setup avm binary file
 setup_version_bin
+
+
+echo "Happy ansibleing..."
+exit 0
