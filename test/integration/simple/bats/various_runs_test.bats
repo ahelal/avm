@@ -11,7 +11,7 @@
 }
 
 @test "Run ansible copy" {
-    run ansible -i localhost, -c local -m ping -m copy -a "src=various_runs_test.sh dest=/tmp/myfile.tmp mode=0666" all
+    run ansible -i localhost, -c local -m ping -m copy -a "src=/etc/passwd dest=/tmp/myfile.tmp mode=0666" all
     [[ ${lines[0]} =~ "localhost | success" ]]
 }
 

@@ -1,0 +1,32 @@
+---
+
+driver                    :
+    name                  : docker
+    socket                : unix:///var/run/docker.sock
+    use_sudo              : false
+    volume                : <%= File.dirname(__FILE__) %>:/avm
+
+provisioner               :
+     name                 : shell
+
+platforms:
+ - name                   : "ubuntu1404"
+   driver_config          :
+     platform             : ubuntu
+     image                : "ubuntu:14.04"
+     provision_command    : curl -L https://www.opscode.com/chef/install.sh > /tmp/x.sh && sudo sh /tmp/x.sh -d /tmp;
+
+ - name                   : "ubuntu1604"
+   driver_config          :
+     platform             : ubuntu
+     image                : "ubuntu:16.04"
+     provision_command    : curl -L https://www.opscode.com/chef/install.sh > /tmp/x.sh && sudo sh /tmp/x.sh -d /tmp;
+
+suites:
+    - name                : simple
+      provisioner         :
+        script            : test/integration/simple/run_as_kitchen.sh
+
+    - name                : advanced
+      provisioner         :
+        script            : test/integration/advanced/run_as_kitchen.sh

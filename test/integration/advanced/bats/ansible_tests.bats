@@ -1,6 +1,5 @@
 #!/usr/bin/env bats
 
-
 @test "Check that ansible is installed" {
     command -v ansible
 }
@@ -33,3 +32,6 @@
     command -v ansible-vault
 }
 
+@test "Check that ansible-console is installed" {
+    command -v ansible-console
+}
