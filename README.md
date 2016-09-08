@@ -18,41 +18,37 @@ set -e
 ## This is an example setup script that you would encapsulate the installation
 
 # What version of ansible setup to use
-SETUP_VERSION="master"
+SETUP_VERSION="v0.1.0"
 
-# Whats my path
+echo "Running travis simple.sh"
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-## Array of versions to install
+AVM_SETUP_PATH="/avm/setup.sh"
 
-## 1. Install Ansible 1.9.4
-ANSIBLE_VERSIONS[0]="1.9.4"
+## Install Ansible 2.0.2.0
+ANSIBLE_VERSIONS[0]="2.0.2.0"
 INSTALL_TYPE[0]="pip"
-# Make this the default for v1
-ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"
+ANSIBLE_LABEL[0]="v2.0"
+PYTHON_REQUIREMENTS[0]="/avm/test/integration/advanced/requirements.txt"
 
-## 2. Install Ansible dev
-ANSIBLE_VERSIONS[1]="devel"
-PYTHON_REQUIREMENTS[1]="$DIR/python_requirements.txt"
-INSTALL_TYPE[1]="git"
-# Make this the default for development
-ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[1]}"
+## Install Ansible 2.1
+ANSIBLE_VERSIONS[1]="2.1.1.0"
+INSTALL_TYPE[1]="pip"
+ANSIBLE_LABEL[1]="v2.1"
 
-## 3. Install Ansible stable-2.0
-ANSIBLE_VERSIONS[2]="stable-2.0"
-PYTHON_REQUIREMENTS[2]="$DIR/python_requirements.txt"
+## Install Ansible devel
+ANSIBLE_VERSIONS[2]="devel"
 INSTALL_TYPE[2]="git"
-# Make this default for v2
-ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"
+ANSIBLE_LABEL[2]="devel"
+PYTHON_REQUIREMENTS[2]="/avm/test/integration/advanced/requirements.txt"
 
-## 4. Install Ansible 1.9.3
-ANSIBLE_VERSIONS[3]="stable-2.0"
-PYTHON_REQUIREMENTS[3]="$DIR/python_requirements.txt"
-INSTALL_TYPE[3]="pip"
+SETUP_USER=kitchen
 
-# Whats the system default version
-ANSIBLE_DEFAULT_VERSION="${ANSIBLE_VERSIONS[1]}"
+ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
+# Whats the default version
+ANSIBLE_DEFAULT_VERSION="v2.1"
 
+#SETUP_VERBOSITY="vv"
 
 ## Create a temp dir to download the setup script
 filename=$( echo ${0} | sed  's|/||g' )
@@ -75,5 +71,5 @@ You can basicly override any variable defined in [setup.sh](https://github.com/A
 
 
 ## Debugging
-Run your setup with **export SETUP_VERBOSITY="" && bash -x your_setup.sh**
+Run your setup with **export SETUP_VERBOSITY="v" && bash -x your_setup.sh**
 This should give ou insight on all the goodies
