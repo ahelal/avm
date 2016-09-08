@@ -1,11 +1,13 @@
-# ansible-setup
-[![Build Status](https://travis-ci.org/AutomationWithAnsible/ansible-setup.svg?branch=master)](https://travis-ci.org/AutomationWithAnsible/ansible-setup)
+# Ansible Version Manager (AVM)
+[![Build Status](https://travis-ci.org/ahelal/avm.svg?branch=master)](https://travis-ci.org/ahelal/avm)
 
-Setup mutli Ansible installation in python virtual env
-
+Ansible Version Manager (AVM) is a tool to manage mutli Ansible installation by creating a python virtual env for each version.
 
 ## Why
-If you need to install multiple version of ansible and add python packages withouth effecting your global python installation.
+
+- If you need to install multiple version of ansible and add python packages withouth effecting your global python installation.
+- Running multi version on CI for testing i.e. travis
+- Using the development version of ansible to test and using stable version for production
 
 ## how
 Create a wrapper script like this one
@@ -13,9 +15,9 @@ Create a wrapper script like this one
 #!/bin/bash
 set -e
 
-## This is an example setup script that you would encapsulate the installation 
+## This is an example setup script that you would encapsulate the installation
 
-# What version of ansible setup to use 
+# What version of ansible setup to use
 SETUP_VERSION="master"
 
 # Whats my path
@@ -33,15 +35,15 @@ ANSIBLE_V1_PATH="${ANSIBLE_VERSIONS[0]}"
 ANSIBLE_VERSIONS[1]="devel"
 PYTHON_REQUIREMENTS[1]="$DIR/python_requirements.txt"
 INSTALL_TYPE[1]="git"
-# Make this the default for development 
+# Make this the default for development
 ANSIBLE_DEV_PATH="${ANSIBLE_VERSIONS[1]}"
 
-## 3. Install Ansible stable-2.0 
+## 3. Install Ansible stable-2.0
 ANSIBLE_VERSIONS[2]="stable-2.0"
 PYTHON_REQUIREMENTS[2]="$DIR/python_requirements.txt"
 INSTALL_TYPE[2]="git"
 # Make this default for v2
-ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"   
+ANSIBLE_V2_PATH="${ANSIBLE_VERSIONS[2]}"
 
 ## 4. Install Ansible 1.9.3
 ANSIBLE_VERSIONS[3]="stable-2.0"
@@ -66,7 +68,7 @@ exit 0
 ```
 
 ## Platforms
-Currently supports Mac and ubuntu 14.04
+Currently supports Mac and ubuntu 14.04, 16.04
 
 ## Options
 You can basicly override any variable defined in [setup.sh](https://github.com/AutomationWithAnsible/ansible-setup/blob/master/setup.sh) in your script.
