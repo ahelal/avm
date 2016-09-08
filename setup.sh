@@ -135,6 +135,22 @@ ansible_install_venv(){
       done
 }
 
+## check symlink dir and create if needed
+##
+dir_symlink(){
+  set +e
+  # $1 src
+  # $2 dest (link)
+  actual_dest=$(readlink $2)
+  if [ "${actual_dest}" != "${1}" ] && ! [ -z "${actual_dest}" ]
+    rm -f ${actual_dest}
+    echo "!!!!!!!LINK-remove"
+  fi
+    echo "!!!!!!!LINK-DO"
+  RUN_COMMAND_AS "ln -sf ${1} ${2}"
+  set -e
+}
+
 ## Setup ansible version label symlink
 ##
 setup_label_symlink() {
@@ -142,7 +158,7 @@ setup_label_symlink() {
   cd $ANSIBLE_BASEDIR
   if ! [ -z "${ANSIBLE_LABEL[$i]}" ]; then
     echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]}"
-    RUN_COMMAND_AS "ln -sf ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}"
+    actual_dest ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}
   fi
 }
 
@@ -205,13 +221,13 @@ setup_version_bin() {
 
   # Require to run sudo as assumption is it will be global
   echo "| Creating symlink ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version"
-  sudo ln -sf ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version
+  actual_dest ${ANSIBLE_BASEDIR}/ansible-version ${ANSIBLE_BIN_PATH}/ansible-version
 
   for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault ansible-console
   do
       # Require to run sudo as assumption is it will be global
       echo "| Creating global symlink ${ANSIBLE_BASEDIR}/bin/${bin} is pointing to ${ANSIBLE_BIN_PATH}/$bin"
-      sudo ln -sf ${ANSIBLE_BASEDIR}/bin/${bin} ${ANSIBLE_BIN_PATH}/$bin
+      actual_dest ${ANSIBLE_BASEDIR}/bin/${bin} ${ANSIBLE_BIN_PATH}/$bin
   done
 
   echo "| Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
@@ -223,7 +239,6 @@ sudo -H easy_install --upgrade virtualenv
 
 # Install ansible in the virtual envs
 ansible_install_venv
-
 
 # Setup ansible-version binary file
 setup_version_bin
