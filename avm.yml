@@ -1,13 +1,13 @@
 ---
 
  - name: Ansible Setup deploy Ansible-verion
-   hosts: all 
+   hosts: all
    gather_facts: False
    connection: local
    tasks:
       - name: Deploy ansibe-version script
         template:
           src="{{ ANSIBLE_VERSION_TEMPLATE_PATH }}"
-          dest="{{ ANSIBLE_BASEDIR }}/ansible-version"
+          dest="{{ ANSIBLE_BASEDIR }}/avm"
           owner="{{ SETUP_USER }}"
           mode=0755

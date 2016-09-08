@@ -78,7 +78,6 @@ msg_warning() {
 ## Run command as a different user if you have SETUP_USER env set
 ##
 RUN_COMMAND_AS() {
-
   if [ "$SETUP_USER" == "$USER" ]; then
     command_2_run="$1"
   else
