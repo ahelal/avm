@@ -124,8 +124,8 @@ ansible_install_venv(){
             echo "| $ansible_version > Using 'git' as installation type"
             if [ -d "ansible/.git" ]; then
                 cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
-                RUN_COMMAND_AS "git pull --rebase"
-                RUN_COMMAND_AS "git submodule update --init --recursive"
+                RUN_COMMAND_AS "git pull -q --rebase"
+                RUN_COMMAND_AS "git submodule update --quiet --init --recursive"
             else
                 RUN_COMMAND_AS "git clone git://github.com/ansible/ansible.git --recursive"
             fi
