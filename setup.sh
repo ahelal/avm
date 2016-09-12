@@ -14,6 +14,9 @@ if [ "${SETUP_VERBOSITY}" == "vv" ]; then
   set -x
 fi
 
+# By default what version to use for Jinja2 template
+AVM_SETUP_VERSION="${SETUP_VERSION-master}"
+
 ## What user is use for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo ~${SETUP_USER})}"
@@ -49,8 +52,7 @@ COLOR_GRN='\e[0;32m' # green
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
-ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/avm.j2}"
-ANSIBLE_VERSION_YML_HTTPS="${ANSIBLE_VERSION_YML_HTTPS:-https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/$SETUP_VERSION/avm.yml}"
+ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/avm.j2}"
 
 ## Print Error msg
 ##
