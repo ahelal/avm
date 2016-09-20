@@ -297,4 +297,3 @@ ansible_install_venv
 setup_version_bin
 
 echo "Happy ansibleing..."
-exit 0
