@@ -14,13 +14,25 @@ Usage:
     avm  path <version>
     avm  use <version>
     avm  activate [version]
+    avm  install (-v version) [-t type] [-l label] [-r requirements]
 
 Options:
     info                        Show available installed ansible virtualenv
     list                        List current virtualenv version
     path <version>              Print binary path of specifc version
     use  <version>              Use a <version> for ansible virtualenv
-    activate [version]          Activate python in the ansible virtualenv (creates a new shell)
+    activate [version]          Activate python in the ansible virtualenv
+"""
+exit 0
+}
+
+print_install_help() {
+echo """avm install
+options:
+  -v|--version        version to install (this is mandatory)
+  -t|--type           type of installation git or pip
+  -l|--label          if you need to create a label to point to verion
+  -r|--requirements   if your using pip requirements.
 """
 exit 0
 }
@@ -106,11 +118,45 @@ case $1 in
         echo ". $(print_path)/activate" >> ${mytmpdir}/.zshrc
         ZDOTDIR=${mytmpdir} zsh -i
     else
-        echo "$SHEL is not supported."
-        exit 1
+        echo "$SHELL is not supported." && exit 1
     fi
-
   ;;
+"install" )
+  [ -z "$2" ] && [ -z "$3" ] && echo "install requires arguments. for more help type 'avm install --help" && exit 1
+  [ "${2}" == "-h" ] || [ "${2}" == "--help" ] && print_install_help
+  shift
+  while [[ $# -gt 1 ]]
+  do
+    key="$1"
+    case ${key} in
+        -v|--version)
+          ANSIBLE_VERSIONS[0]="$2"
+          shift ;;
+        -t|--type)
+          INSTALL_TYPE[0]="$2"
+          shift ;;
+        -l|--label)
+          ANSIBLE_LABEL[0]="$2"
+          shift ;;
+        -r|--requirements)
+          PYTHON_REQUIREMENTS[0]="$2"
+          shift ;;
+        -h|--help)
+          print_install_help;;
+        *)
+          echo " unkown option ${1} for install." && exit 1
+        ;;
+    esac
+    shift
+  done
+  [ -z "${ANSIBLE_VERSIONS[0]}" ] && echo " --version is required" && exit 1
+  mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
+  curl -s https://raw.githubusercontent.com/ahelal/avm/master/setup.sh -o ${mytmpdir}/setup.sh
+  echo "> You might be asked for your sudo password :"
+  # Run Setup
+  sudo whoami > /dev/null
+  . ${mytmpdir}/setup.sh
+;;
 '')
   print_help
   ;;
