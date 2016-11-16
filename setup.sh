@@ -33,7 +33,7 @@ DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 ## Array of versions of ansiblet to install and what requirements files for each version
 ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.1.1.0"}"
 ## Label of version if any
-ANSIBLE_LABEL="${ANSIBLE_LABEL:-"test_v2"}"
+#ANSIBLE_LABEL="${ANSIBLE_LABEL:-"test_v2"}"
 
 ## Default version to use
 ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-'v2'}"
