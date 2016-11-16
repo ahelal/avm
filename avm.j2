@@ -20,7 +20,7 @@ Options:
     list                        List current virtualenv version
     path <version>              Print binary path of specifc version
     use  <version>              Use a <version> for ansible virtualenv
-    activate [version]          Activate python in the ansible virtualenv
+    activate [version]          Activate python in the ansible virtualenv (creates a new shell)
 """
 exit 0
 }
@@ -92,8 +92,24 @@ case $1 in
   setup_links
   ;;
 "activate" )
-  echo "WIP"
-  exit 1
+    [ -z "$2" ] && echo "activate requires a version as an argument." && exit 1
+    version="$2"
+    export ANSIBLE_SELECTED_VERSION="$2"
+    printf "> Attempt to activate (this will create a subshell). "
+    print_path
+
+    if [ "$SHELL" == "/bin/bash" ]; then
+        /bin/bash --login --init-file $(print_path)/activate
+    elif [ "$SHELL" == "/bin/zsh" ]; then
+        mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
+        echo ". ~/.zshrc" > ${mytmpdir}/.zshrc
+        echo ". $(print_path)/activate" >> ${mytmpdir}/.zshrc
+        ZDOTDIR=${mytmpdir} zsh -i
+    else
+        echo "$SHEL is not supported."
+        exit 1
+    fi
+
   ;;
 '')
   print_help
@@ -104,4 +120,4 @@ case $1 in
   ;;
 esac
 
-exit 0
+#exit 0
