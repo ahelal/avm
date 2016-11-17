@@ -22,7 +22,7 @@ SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo ~${SETUP_USER})}"
 
 ## Ubuntu apt pre-req
-UBUNTU_PKGS="${UBUNTU_PKGS:-python-setuptools python-dev build-essential libffi-dev libssl-dev curl software-properties-common}"
+UBUNTU_PKGS="${UBUNTU_PKGS:-python-setuptools python-dev build-essential libffi-dev libyaml-dev libssl-dev curl software-properties-common}"
 
 ## Ansible virtual environment directory
 ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
@@ -33,10 +33,10 @@ DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 ## Array of versions of ansiblet to install and what requirements files for each version
 ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.1.1.0"}"
 ## Label of version if any
-ANSIBLE_LABEL="${ANSIBLE_LABEL:-"test_v2"}"
+#ANSIBLE_LABEL="${ANSIBLE_LABEL:-"test_v2"}"
 
 ## Default version to use
-ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-'v2'}"
+ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-${ANSIBLE_VERSIONS}}"
 
 ## Should we force venv installation
 FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-'no'}"
@@ -192,7 +192,7 @@ setup_ubuntu(){
     VER=$(lsb_release -sr)
     echo "| Updating some ubuntu-${VER} packages (might take some time)"
     if [ "${VER}" == "14.04" ]; then
-      RUN_COMMAND_AS "sudo apt-get install -y $UBUNTU_PKGS"
+      RUN_COMMAND_AS "sudo apt-get install -y ${UBUNTU_PKGS}"
     elif [ "${VER}" == "16.04" ]; then
       RUN_COMMAND_AS "sudo apt -y update"
       RUN_COMMAND_AS "sudo apt install -y python-minimal"
@@ -284,11 +284,11 @@ fi
 ## Do some checks python curl and easy_install
 ##
 [[ -z "$(which python)" ]] && msg_exit "Opps python is not installed or not in your path."
-[[ -z "$(which curl)" ]] && msg_exit "curl is not in your path. Please install it or reference it in your path"
-[[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not in your path."
+[[ -z "$(which curl)" ]] && msg_exit "curl is not installed or not in your path."
+[[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not installed or not in your path."
 
 # Install virtual env
-sudo -H easy_install --upgrade virtualenv
+sudo -H easy_install -q --upgrade virtualenv
 
 # Install ansible in the virtual envs
 ansible_install_venv
