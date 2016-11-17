@@ -9,8 +9,3 @@
     run avm activate XXXXX
     [[ ${lines[1]} =~ "available" ]]
 }
-
-@test "avm activte wrong version fails" {
-    run avm activate v2.1 && echo ${AVM_ACTIVATE} && exit 0
-    [[ ${lines[0]} =~ "1" ]]
-}
