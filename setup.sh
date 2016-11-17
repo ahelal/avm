@@ -36,7 +36,7 @@ ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.1.1.0"}"
 #ANSIBLE_LABEL="${ANSIBLE_LABEL:-"test_v2"}"
 
 ## Default version to use
-ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-'v2'}"
+ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-${ANSIBLE_VERSIONS}}"
 
 ## Should we force venv installation
 FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-'no'}"
@@ -284,11 +284,11 @@ fi
 ## Do some checks python curl and easy_install
 ##
 [[ -z "$(which python)" ]] && msg_exit "Opps python is not installed or not in your path."
-[[ -z "$(which curl)" ]] && msg_exit "curl is not in your path. Please install it or reference it in your path"
-[[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not in your path."
+[[ -z "$(which curl)" ]] && msg_exit "curl is not installed or not in your path."
+[[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not installed or not in your path."
 
 # Install virtual env
-sudo -H easy_install --upgrade virtualenv
+sudo -H easy_install -q --upgrade virtualenv
 
 # Install ansible in the virtual envs
 ansible_install_venv

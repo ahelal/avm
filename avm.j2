@@ -77,12 +77,11 @@ print_path(){
 
 setup_links(){
     verify_version
-
     for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault ansible-console
     do
-        echo "Ensuring symlink $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin :is pointing to ${ANSIBLE_BASEDIR}/bin/${bin}"
         ln -sf $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin ${ANSIBLE_BASEDIR}/bin/${bin}
     done
+    echo "Updating to use ${ANSIBLE_SELECTED_VERSION}"
 }
 
 case $1 in
@@ -152,7 +151,7 @@ case $1 in
   done
   [ -z "${ANSIBLE_VERSIONS[0]}" ] && echo " --version is required" && exit 1
   mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
-  curl -s https://raw.githubusercontent.com/ahelal/${SETUP_VERSION}/activate/setup.sh -o ${mytmpdir}/setup.sh
+  curl -s https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh -o ${mytmpdir}/setup.sh
   echo "> You might be asked for your sudo password :"
   # Run Setup
   sudo whoami > /dev/null
