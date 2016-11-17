@@ -5,6 +5,7 @@ ANSIBLE_BIN_PATH="{{ ANSIBLE_BIN_PATH }}"
 ANSIBLE_BASEDIR="{{ ANSIBLE_BASEDIR }}"
 ANSIBLE_SELECTED_VERSION="{{ ANSIBLE_SELECTED_VERSION }}"
 
+SETUP_VERSION="${SETUP_VERSION-master}"
 #Function: help
 print_help() {
 echo """avm
@@ -151,7 +152,7 @@ case $1 in
   done
   [ -z "${ANSIBLE_VERSIONS[0]}" ] && echo " --version is required" && exit 1
   mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
-  curl -s https://raw.githubusercontent.com/ahelal/avm/master/setup.sh -o ${mytmpdir}/setup.sh
+  curl -s https://raw.githubusercontent.com/ahelal/${SETUP_VERSION}/activate/setup.sh -o ${mytmpdir}/setup.sh
   echo "> You might be asked for your sudo password :"
   # Run Setup
   sudo whoami > /dev/null
