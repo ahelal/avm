@@ -14,15 +14,15 @@ Usage:
     avm  list
     avm  path <version>
     avm  use <version>
-    avm  activate [version]
+    avm  activate <version>
     avm  install (-v version) [-t type] [-l label] [-r requirements]
 
 Options:
-    info                        Show available installed ansible virtualenv
-    list                        List current virtualenv version
+    info                        Show ansible version in use
+    list                        List installed versions
     path <version>              Print binary path of specifc version
-    use  <version>              Use a <version> for ansible virtualenv
-    activate [version]          Activate python in the ansible virtualenv
+    use  <version>              Use a <version> of ansible
+    activate <version>          Activate virtualenv for <version>
 """
 exit 0
 }
@@ -41,7 +41,7 @@ exit 0
 show_installed(){
     ansible_link="$(readlink ${ANSIBLE_BASEDIR}/bin/ansible)"
     version="$(echo $ansible_link | sed 's|'"$ANSIBLE_BASEDIR"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
-    echo "installed version: \"$version\""
+    echo "current version: \"$version\""
 }
 
 show_versions(){
@@ -89,7 +89,7 @@ case $1 in
   show_installed
   ;;
 "list" | "versions")
-  echo "current installed version: $(show_versions)"
+  echo "installed versions: $(show_versions)"
   ;;
 "path")
   [ -z "$2" ] && echo "path requires a version as an argument." && exit 1
@@ -104,17 +104,23 @@ case $1 in
   setup_links
   ;;
 "activate" )
-    [ -z "$2" ] && echo "activate requires a version as an argument." && exit 1
-    version="$2"
+    version="${2}"
+    [ -z "${version}" ] && echo "activate requires a version as an argument." && exit 1
+    ! [ -z "${AVM_ACTIVATE}" ] && echo "You are allready in anisble env. type 'exit' to quit from virtual env" && exit 1 
+
     export ANSIBLE_SELECTED_VERSION="$2"
     printf "> Attempt to activate (this will create a subshell). "
     print_path
 
+    mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
     if [ "$SHELL" == "/bin/bash" ]; then
+        echo ". ~/.bashrc" > ${mytmpdir}/.bashrc
+        echo "export AVM_ACTIVATE=1" >> ${mytmpdir}/.bashrc
+        echo ". $(print_path)/activate" >> ${mytmpdir}/.bashrc
         /bin/bash --login --init-file $(print_path)/activate
     elif [ "$SHELL" == "/bin/zsh" ]; then
-        mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
         echo ". ~/.zshrc" > ${mytmpdir}/.zshrc
+        echo "export AVM_ACTIVATE=1" >> ${mytmpdir}/.zshrc
         echo ". $(print_path)/activate" >> ${mytmpdir}/.zshrc
         ZDOTDIR=${mytmpdir} zsh -i
     else
