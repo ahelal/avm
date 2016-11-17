@@ -16,7 +16,7 @@
 
 @test "avm show list should match setup" {
     run avm list
-    [[ ${lines[0]} =~ "current installed version: '2.0.2.0' '2.1.1.0' 'devel' 'v2.0' 'v2.1'" ]]
+    [[ ${lines[0]} =~ "installed versions: '2.0.2.0' '2.1.1.0' 'devel' 'v2.0' 'v2.1'" ]]
 }
 
 @test "avm use to v2.0" {
