@@ -6,7 +6,7 @@ Ansible Version Manager (AVM) is a tool to manage mutli Ansible installation by 
 ## Why
 
 - If you need to install multiple version of ansible and add python packages withouth effecting your global python installation.
-- Running multi version on CI for testing i.e. travis
+- Running multi version on CI for testing i.e. travis, concourse, jenkins, ...
 - Using the development version of ansible to test and using stable version for production
 
 ## how
