@@ -57,22 +57,22 @@ ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercont
 ## Print Error msg
 ##
 msg_exit() {
-  printf "> $COLOR_RED$@$COLOR_END\nExiting...\n" && exit 1
+  printf "> ${COLOR_RED}$@${COLOR_END}\nExiting...\n" && exit 1
 }
 
 ## Print warning msg
 ##
 msg_warning() {
-  printf "| $COLOR_YEL$@$COLOR_END\n"
+  printf "| ${COLOR_YEL}$@${COLOR_END}\n"
 }
 
 ## Run command as a different user if you have SETUP_USER env set
 ##
 RUN_COMMAND_AS() {
-  if [ "$SETUP_USER" == "$USER" ]; then
+  if [ "${SETUP_USER}" == "${USER}" ]; then
     command_2_run="$1"
   else
-    command_2_run=sudo su $SETUP_USER -c "$1"
+    command_2_run=sudo su ${SETUP_USER} -c "$1"
   fi
 
   case ${SETUP_VERBOSITY} in
@@ -94,8 +94,10 @@ RUN_COMMAND_AS() {
 ansible_install_venv(){
     # Create base dir
     RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}"
+    RUN_COMMAND_AS "chmod 0755 ${ANSIBLE_BASEDIR}"
     # Create a bin dir in base dir
     RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}/bin"
+    RUN_COMMAND_AS "chmod 0755 ${ANSIBLE_BASEDIR}/bin"
     for i in $(seq 1 ${#ANSIBLE_VERSIONS[@]})
     do
         i=$(($i-1))
@@ -105,25 +107,25 @@ ansible_install_venv(){
         cd "${ANSIBLE_BASEDIR}/${ansible_version}"
 
         # 1st create virtual env for this version
-        if [ "$FORCE_VENV_INSTALLATION" != "no" ] && [ ! -d "./venv" ]; then
-          echo "| $ansible_version > Creating/updating venv for ansible $ansible_version"
+        if [ "${FORCE_VENV_INSTALLATION}" != "no" ] && [ ! -d "./venv" ]; then
+          echo "| ${ansible_version} > Creating/updating venv for ansible ${ansible_version}"
           RUN_COMMAND_AS "virtualenv venv"
         else
-          echo "| $ansible_version > venv $ansible_version exists"
+          echo "| ${ansible_version} > venv ${ansible_version} exists"
         fi
 
         # 2nd Check if python requirments file exists and install requirement file
         if ! [ -z "${PYTHON_REQUIREMENTS[$i]}" ]; then
-            echo "| $ansible_version > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
+            echo "| ${ansible_version} > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
+            RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ansible_version}/venv/bin/pip install --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
         fi
         # 3ed install Ansible in venv
         if [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "pip" ]; then
             echo "| $ansible_version > Using 'pip' as installation type"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/pip install ansible==$ansible_version"
+            RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ansible_version}/venv/bin/pip install ansible==${ansible_version}"
         elif [ ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE} == "git" ]; then
             [[ -z "$(which git)" ]] && msg_exit "git is not installed"
-            echo "| $ansible_version > Using 'git' as installation type"
+            echo "| ${ansible_version} > Using 'git' as installation type"
             if [ -d "ansible/.git" ]; then
                 cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
                 RUN_COMMAND_AS "git pull -q --rebase"
@@ -133,10 +135,10 @@ ansible_install_venv(){
             fi
             cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
             # Check out the version and install it
-            RUN_COMMAND_AS "git checkout $ansible_version"
-            RUN_COMMAND_AS "$ANSIBLE_BASEDIR/$ansible_version/venv/bin/python setup.py install"
+            RUN_COMMAND_AS "git checkout ${ansible_version}"
+            RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ansible_version}/venv/bin/python setup.py install"
         else
-            msg_exit "$ansible_version > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
+            msg_exit "${ansible_version} > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
         fi
 
       # 4th check if we need to setup a label for our installation
@@ -170,7 +172,7 @@ manage_symlink(){
 ##
 setup_label_symlink() {
   i=${1} # our index in the array
-  cd $ANSIBLE_BASEDIR
+  cd ${ANSIBLE_BASEDIR}
   if ! [ -z "${ANSIBLE_LABEL[$i]}" ]; then
     echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]}"
     manage_symlink ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]} ${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}
@@ -180,9 +182,8 @@ setup_label_symlink() {
 ## Check if I can change to root
 ##
 CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1 | grep "load" | wc -l)
-if [ ${CAN_I_RUN_SUDO} -eq 0 ] && [ "${SETUP_SUDO_IGNORE}" == "0"  ]; then
-  msg_exit "$USER can't run the Sudo command. You might have sudo rights, But password is required. you can run$COLOR_END $COLOR_GRN'sudo whoami && $0'$COLOR_END to use the cached password in sudo"
-  exit 1
+if [ ${CAN_I_RUN_SUDO} -eq 0 ] && [ "${SETUP_SUDO_IGNORE}" == "0" ]; then
+  msg_exit "${USER} can't run the sudo command. You might have sudo rights, But password is required. you can run${COLOR_END} ${COLOR_GRN}'sudo whoami && $0'${COLOR_END} to use the cached password in sudo"
 fi
 
 ## Ubuntu setup
@@ -202,11 +203,27 @@ setup_ubuntu(){
     fi
 }
 
+
+## Alpine setup
+##
+setup_alpine(){
+    version=$(cat /etc/os-release | grep PRETTY_NAME | cut -d "=" -f2)
+    PRETTY_NAME='"Alpine Linux v3.4"'
+
+    echo "| Updating some alpine packages (might take some time)"
+    if [ "${version}" != "${PRETTY_NAME}" ]; then
+      msg_warning "Your Alpine linux version was not tested. It might work"
+    fi
+    RUN_COMMAND_AS "sudo /sbin/apk add --no-cache --quiet python py-pip"
+    RUN_COMMAND_AS "sudo /sbin/apk --no-cache add --virtual build-dependencies \
+                             python-dev libffi-dev openssl-dev build-base git"
+}
+
+
 ## Redhat setup
 ##
 setup_redhat(){
-  echo "REDHAT STILL EXPERMINTAL"
-  exit 1
+  msg_exit "REDHAT STILL EXPERMINTAL"
 }
 
 ## Get template
@@ -216,9 +233,12 @@ avm_script_Setup(){
   TEMP_SETUP_VERBOSITY=${SETUP_VERBOSITY}
   SETUP_VERBOSITY="stdout"
   my_temp_dir=$(RUN_COMMAND_AS "mktemp -dt ${filename}.XXXX")
+  # if my_temp_dir is empty (non gnu mktemp)
+  [[ -z "${my_temp_dir}" ]] && my_temp_dir=$(RUN_COMMAND_AS "mktemp -dt")
+
   SETUP_VERBOSITY=${TEMP_SETUP_VERBOSITY}
 
-cat > $my_temp_dir/AVM_YML <<- EOM
+cat > ${my_temp_dir}/AVM_YML <<- EOM
 ---
  - hosts: all
    gather_facts: False
@@ -228,7 +248,7 @@ cat > $my_temp_dir/AVM_YML <<- EOM
 EOM
 
   # Get ansible yaml and j2 file from github
-  RUN_COMMAND_AS "curl -f -s -o $my_temp_dir/AVM_J2 $ANSIBLE_VERSION_J2_HTTPS"
+  RUN_COMMAND_AS "curl -f -s -o ${my_temp_dir}/AVM_J2 ${ANSIBLE_VERSION_J2_HTTPS}"
 
   echo ${my_temp_dir}
 }
@@ -238,12 +258,12 @@ EOM
 setup_version_bin() {
   my_temp_dir=$(avm_script_Setup)
 
-  RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, $my_temp_dir/AVM_YML \
-    -e ANSIBLE_BIN_PATH=$ANSIBLE_BIN_PATH \
-    -e ANSIBLE_BASEDIR=$ANSIBLE_BASEDIR \
-    -e ANSIBLE_SELECTED_VERSION=$ANSIBLE_DEFAULT_VERSION \
-    -e SETUP_USER=$SETUP_USER \
-    -e ANSIBLE_VERSION_TEMPLATE_PATH=$my_temp_dir/AVM_J2"
+  RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, ${my_temp_dir}/AVM_YML \
+    -e ANSIBLE_BIN_PATH=${ANSIBLE_BIN_PATH} \
+    -e ANSIBLE_BASEDIR=${ANSIBLE_BASEDIR} \
+    -e ANSIBLE_SELECTED_VERSION=${ANSIBLE_DEFAULT_VERSION} \
+    -e SETUP_USER=${SETUP_USER} \
+    -e ANSIBLE_VERSION_TEMPLATE_PATH=${my_temp_dir}/AVM_J2"
 
   # Require to run sudo as assumption is it will be global
   echo "| Creating symlink ${ANSIBLE_BASEDIR}/avm ${ANSIBLE_BIN_PATH}/avm"
@@ -256,13 +276,13 @@ setup_version_bin() {
       manage_symlink ${ANSIBLE_BASEDIR}/bin/${bin} ${ANSIBLE_BIN_PATH}/$bin RUN_SUDO
   done
 
-  echo "| Setting up default virtualenv to $ANSIBLE_DEFAULT_VERSION"
-  RUN_COMMAND_AS "avm set $ANSIBLE_DEFAULT_VERSION"
+  echo "| Setting up default virtualenv to ${ANSIBLE_DEFAULT_VERSION}"
+  RUN_COMMAND_AS "${ANSIBLE_BIN_PATH}/avm set ${ANSIBLE_DEFAULT_VERSION}"
 }
 
 ## Check setup home dir
 ##
-! [ -d "$SETUP_USER_HOME" ] && msg_exit "Your home directory \"$SETUP_USER_HOME\" doesn't exist."
+! [ -d "${SETUP_USER_HOME}" ] && msg_exit "Your home directory \"${SETUP_USER_HOME}\" doesn't exist."
 
 ## Do some checks user
 ##
@@ -271,11 +291,13 @@ setup_version_bin() {
 # Check your distro is supported
 ##
 system=$(uname)
-if [ "$system" == "Linux" ]; then
+if [ "${system}" == "Linux" ]; then
   if [ -f /etc/redhat-release ]; then
     setup_redhat
   elif [ -f /etc/lsb-release ]; then
     setup_ubuntu
+  elif [ $(cat /etc/os-release | grep ID=alpine) ]; then
+    setup_alpine
   else
     msg_warning "Your linux system was not tested. It might work"
   fi
@@ -285,10 +307,16 @@ fi
 ##
 [[ -z "$(which python)" ]] && msg_exit "Opps python is not installed or not in your path."
 [[ -z "$(which curl)" ]] && msg_exit "curl is not installed or not in your path."
-[[ -z "$(which easy_install)" ]] && msg_exit "easy_install is not installed or not in your path."
+if [ -z "$(which easy_install)" ] && [ -z "$(which pip)" ]; then
+   msg_exit "easy_install or pip is not installed or not in your path."
+fi
 
 # Install virtual env
-sudo -H easy_install -q --upgrade virtualenv
+if ! [[ -z "$(which pip)" ]]; then
+  sudo -H pip install -q --upgrade virtualenv
+else
+  sudo -H easy_install -q --upgrade virtualenv
+fi
 
 # Install ansible in the virtual envs
 ansible_install_venv
