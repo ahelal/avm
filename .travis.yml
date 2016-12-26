@@ -9,8 +9,10 @@ services:
 env:
   - KITCHEN_TEST="simple-ubuntu1404"
   - KITCHEN_TEST="simple-ubuntu1604"
+  - KITCHEN_TEST="simple-alpine34"
   - KITCHEN_TEST="advanced-ubuntu1404"
   - KITCHEN_TEST="advanced-ubuntu1604"
+  - KITCHEN_TEST="advanced-alpine34"
 
 before_install:
   # Make sure everything's up to date.
