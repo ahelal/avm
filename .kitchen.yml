@@ -4,7 +4,12 @@ driver                    :
     name                  : docker
     socket                : unix:///var/run/docker.sock
     use_sudo              : false
-    volume                : <%= File.dirname(__FILE__) %>:/avm
+    run_options           : "-v <%= File.dirname(__FILE__) %>:/avm"
+
+verifier                  :
+  name                    : serverspec
+  remote_exec             : false
+  default_pattern         : true
 
 provisioner               :
      name                 : shell
@@ -14,18 +19,24 @@ platforms:
    driver_config          :
      platform             : ubuntu
      image                : "ubuntu:14.04"
-     provision_command    : curl -L https://www.opscode.com/chef/install.sh > /tmp/x.sh && sudo sh /tmp/x.sh -d /tmp;
 
  - name                   : "ubuntu1604"
    driver_config          :
      platform             : ubuntu
      image                : "ubuntu:16.04"
-     provision_command    : curl -L https://www.opscode.com/chef/install.sh > /tmp/x.sh && sudo sh /tmp/x.sh -d /tmp;
+
+ - name                   : "alpine34"
+   driver_config          :
+     image                : alpine:3.4
+     platform             : alpine
+     provision_command    :
+              - apk add sudo
+              - echo "auth       sufficient pam_rootok.so" > /etc/pam.d/su
 
 suites:
     - name                : simple
       provisioner         :
-        script            : test/integration/simple/run_as_kitchen.sh
+        script            : <%= File.dirname(__FILE__) %>/test/integration/simple/run_as_kitchen.sh
 
     - name                : advanced
       provisioner         :

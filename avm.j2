@@ -20,7 +20,7 @@ Usage:
 Options:
     info                        Show ansible version in use
     list                        List installed versions
-    path <version>              Print binary path of specifc version
+    path <version>              Print binary path of specific version
     use  <version>              Use a <version> of ansible
     activate <version>          Activate virtualenv for <version>
 """
@@ -30,10 +30,10 @@ exit 0
 print_install_help() {
 echo """avm install
 options:
-  -v|--version        version to install (this is mandatory)
-  -t|--type           type of installation git or pip
-  -l|--label          if you need to create a label to point to verion
-  -r|--requirements   if your using pip requirements.
+  -v|--version              Version to install (this is mandatory)
+  -t|--type                 Type of installation git or pip (default PIP)
+  -l|--label                Custom label for this installation i.e. v2.1, dev, test, ...
+  -r|--requirements         Provide a pip requirements files to install in virutalenv
 """
 exit 0
 }
@@ -106,7 +106,7 @@ case $1 in
 "activate" )
     version="${2}"
     [ -z "${version}" ] && echo "activate requires a version as an argument." && exit 1
-    ! [ -z "${AVM_ACTIVATE}" ] && echo "You are allready in anisble env. type 'exit' to quit from virtual env" && exit 1 
+    ! [ -z "${AVM_ACTIVATE}" ] && echo "You are allready in anisble env. type 'exit' to quit from virtual env" && exit 1
 
     export ANSIBLE_SELECTED_VERSION="$2"
     printf "> Attempt to activate (this will create a subshell). "

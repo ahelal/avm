@@ -1,17 +1,17 @@
 # Ansible Version Manager (AVM)
 [![Build Status](https://travis-ci.org/ahelal/avm.svg?branch=master)](https://travis-ci.org/ahelal/avm)
 
-Ansible Version Manager (AVM) is a tool to manage mutli Ansible installation by creating a python virtual env for each version.
+Ansible Version Manager (AVM) is a tool to manage multi Ansible installation by creating a python virtual env for each version.
 
 ## Why
 
-- If you need to install multiple version of ansible and add python packages withouth effecting your global python installation.
+- If you need to install multiple version of ansible and add python packages without effecting your global python installation.
 - Running multi version on CI for testing i.e. travis, concourse, jenkins, ...
 - Using the development version of ansible to test and using stable version for production
 
 ## How
- 
-You have two options using a **setup script** or **command** to install 
+
+You have two options using a **setup script** or **command** to install
 
 ### Setup script
 Create a wrapper script this would be useful for CI or if you want you team to run same version of ansible.
@@ -67,7 +67,7 @@ curl -s https://raw.githubusercontent.com/AutomationWithAnsible/ansible-setup/${
 exit 0
 ```
 
-You can basicly override any variable defined in [setup.sh](https://github.com/AutomationWithAnsible/ansible-setup/blob/master/setup.sh) in your script.
+You can basically override any variable defined in [setup.sh](https://github.com/AutomationWithAnsible/ansible-setup/blob/master/setup.sh) in your script.
 
 ### Setup Command
 You would need first to install avm
@@ -82,7 +82,7 @@ then you can use the command install option
 # Install stable release (defaults to pip)
 avm install --version 2.2.0.0 --label production
 
-# Install development release 
+# Install development release
 avm install --version devel --label dev --type git
 
 # if you have some python lib to install in the virtual env you can also add python requirements.txt file
@@ -102,14 +102,28 @@ Usage:
 Options:
     info                        Show ansible version in use
     list                        List installed versions
-    path <version>              Print binary path of specifc version
+    path <version>              Print binary path of specific version
     use  <version>              Use a <version> of ansible
     activate <version>          Activate virtualenv for <version>
 ```
 
-
 ## Platforms
-Currently supports Mac and ubuntu 14.04, 16.04
+Currently tested under
+* OS-X
+* Ubuntu 14.04, 16.04
+* Alpine 3.4 (early support)
+
+## Alpine docker
+
+Experimental support for Alpine.
+
+### Prerequisites
+* apk add sudo
+if your installing for non root user
+* echo "auth       sufficient pam_rootok.so" > /etc/pam.d/su
+
+if your creating an image that does not have python or gcc you can do a cleanup at the end
+```apk del build-dependencies``` this.
 
 ## Debugging
 Run your setup with **export SETUP_VERBOSITY="v" && bash -x your_setup.sh**
@@ -118,6 +132,5 @@ This should give ou insight on all the goodies
 ## License
 License (MIT)
 
-## Contribution 
+## Contribution
 Your contribution is welcome .
-
