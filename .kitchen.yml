@@ -33,7 +33,7 @@ platforms:
               - apk add sudo
               - echo "auth       sufficient pam_rootok.so" > /etc/pam.d/su
 
-suites:
+suites                    :
     - name                : simple
       provisioner         :
         script            : <%= File.dirname(__FILE__) %>/test/integration/simple/run_as_kitchen.sh

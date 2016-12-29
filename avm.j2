@@ -1,12 +1,17 @@
 #!/bin/bash
 set -e
 
-ANSIBLE_BIN_PATH="{{ ANSIBLE_BIN_PATH }}"
 ANSIBLE_BASEDIR="{{ ANSIBLE_BASEDIR }}"
 ANSIBLE_SELECTED_VERSION="{{ ANSIBLE_SELECTED_VERSION }}"
 
 SETUP_VERSION="${SETUP_VERSION-master}"
-#Function: help
+## Print Error msg
+msg_exit() {
+  printf "> %s\n" "$@"
+  exit 1
+}
+
+## Function: help
 print_help() {
 echo """avm
 Usage:
@@ -39,35 +44,34 @@ exit 0
 }
 
 show_installed(){
-    ansible_link="$(readlink ${ANSIBLE_BASEDIR}/bin/ansible)"
-    version="$(echo $ansible_link | sed 's|'"$ANSIBLE_BASEDIR"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
-    echo "current version: \"$version\""
+  ansible_link="$(readlink ${ANSIBLE_BASEDIR}/bin/ansible)"
+  version="$(echo $ansible_link | sed 's|'"$ANSIBLE_BASEDIR"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
+  echo "current version: \"$version\""
 }
 
 show_versions(){
-    cd $ANSIBLE_BASEDIR
-    for version in *
-    do
-        [[ $version =~ ^(ansible-version)$ ]] && continue
-        [[ $version =~ ^(bin)$ ]] && continue
-        [[ $version =~ ^(avm)$ ]] && continue
-        versions_list+="'${version}' "
-    done
-    echo "$versions_list"
+  cd "${ANSIBLE_BASEDIR}"
+  for version in *
+  do
+    [[ $version =~ ^(ansible-version)$ ]] && continue
+    [[ $version =~ ^(bin)$ ]] && continue
+    [[ $version =~ ^(avm)$ ]] && continue
+    versions_list+="'${version}' "
+  done
+  echo "${versions_list}"
 }
 
 # Verify version
 verify_version(){
-    versions_list="$(show_versions)"
-    if ! [[ ${versions_list} == *"'${ANSIBLE_SELECTED_VERSION}'"* ]]; then
-        echo "The desired version \"${ANSIBLE_SELECTED_VERSION}\" is not in the version list."
-        echo "available version: $versions_list"
-        exit 1
-    fi
-    if ! [ -d $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/ ]; then
-        echo "Your virtualenv seems to be not installed or incorrect reference. \"$ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/\" is not a valid directory"
-        exit 1
-    fi
+  versions_list="$(show_versions)"
+  if ! [[ ${versions_list} == *"'${ANSIBLE_SELECTED_VERSION}'"* ]]; then
+    echo "The desired version \"${ANSIBLE_SELECTED_VERSION}\" is not in the version list."
+    echo "available version: $versions_list"
+    exit 1
+  fi
+  if ! [ -d $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/ ]; then
+    msg_exit "Your virtualenv seems to be not installed or incorrect reference. \"$ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/\" is not a valid directory"
+  fi
 }
 
 print_path(){
@@ -79,7 +83,7 @@ setup_links(){
     verify_version
     for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault ansible-console
     do
-        ln -sf $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/$bin ${ANSIBLE_BASEDIR}/bin/${bin}
+      ln -sf "${ANSIBLE_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/${bin}" "${ANSIBLE_BASEDIR}/bin/${bin}"
     done
     echo "Updating to use ${ANSIBLE_SELECTED_VERSION}"
 }
@@ -92,76 +96,77 @@ case $1 in
   echo "installed versions: $(show_versions)"
   ;;
 "path")
-  [ -z "$2" ] && echo "path requires a version as an argument." && exit 1
+  [ -z "$2" ] && msg_exit "path requires a version as an argument."
   version="$2"
   export ANSIBLE_SELECTED_VERSION="$2"
   print_path
   ;;
 "use" | "set")
   version="$2"
-  [ -z "$2" ] && echo "use requires a version as an argument." && exit 1
+  [ -z "$2" ] && msg_exit "use requires a version as an argument."
   export ANSIBLE_SELECTED_VERSION="$2"
   setup_links
   ;;
 "activate" )
     version="${2}"
-    [ -z "${version}" ] && echo "activate requires a version as an argument." && exit 1
-    ! [ -z "${AVM_ACTIVATE}" ] && echo "You are allready in anisble env. type 'exit' to quit from virtual env" && exit 1
+    [ -z "${version}" ] && msg_exit "activate requires a version as an argument."
+    ! [ -z "${AVM_ACTIVATE}" ] && msg_exit "You are allready in anisble env. type 'exit' to quit from virtual env"
 
     export ANSIBLE_SELECTED_VERSION="$2"
     printf "> Attempt to activate (this will create a subshell). "
     print_path
 
     mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
-    if [ "$SHELL" == "/bin/bash" ]; then
-        echo ". ~/.bashrc" > ${mytmpdir}/.bashrc
-        echo "export AVM_ACTIVATE=1" >> ${mytmpdir}/.bashrc
-        echo ". $(print_path)/activate" >> ${mytmpdir}/.bashrc
-        /bin/bash --login --init-file $(print_path)/activate
-    elif [ "$SHELL" == "/bin/zsh" ]; then
-        echo ". ~/.zshrc" > ${mytmpdir}/.zshrc
-        echo "export AVM_ACTIVATE=1" >> ${mytmpdir}/.zshrc
-        echo ". $(print_path)/activate" >> ${mytmpdir}/.zshrc
-        ZDOTDIR=${mytmpdir} zsh -i
+    if [ "${SHELL}" = "/bin/bash" ]; then
+        echo ". ~/.bashrc" > "${mytmpdir}/.bashrc"
+        echo "export AVM_ACTIVATE=1" >> "${mytmpdir}/.bashrc"
+        echo ". $(print_path)/activate" >> "${mytmpdir}/.bashrc"
+        /bin/bash --login --init-file "$(print_path)/activate"
+    elif [ "${SHELL}" = "/bin/zsh" ]; then
+        echo ". ~/.zshrc" > "${mytmpdir}/.zshrc"
+        echo "export AVM_ACTIVATE=1" >> "${mytmpdir}/.zshrc"
+        echo ". $(print_path)/activate" >> "${mytmpdir}/.zshrc"
+        export ZDOTDIR="${mytmpdir} zsh -i"
     else
-        echo "$SHELL is not supported." && exit 1
+        msg_exit "${SHELL} is not supported."
     fi
   ;;
 "install" )
-  [ -z "$2" ] && [ -z "$3" ] && echo "install requires arguments. for more help type 'avm install --help" && exit 1
-  [ "${2}" == "-h" ] || [ "${2}" == "--help" ] && print_install_help
+  [ -z "$2" ] && [ -z "$3" ] && msg_exit "install requires arguments. for more help type 'avm install --help"
+  [ "${2}" = "-h" ] || [ "${2}" = "--help" ] && print_install_help
   shift
   while [[ $# -gt 1 ]]
   do
     key="$1"
     case ${key} in
-        -v|--version)
-          ANSIBLE_VERSIONS[0]="$2"
-          shift ;;
-        -t|--type)
-          INSTALL_TYPE[0]="$2"
-          shift ;;
-        -l|--label)
-          ANSIBLE_LABEL[0]="$2"
-          shift ;;
-        -r|--requirements)
-          PYTHON_REQUIREMENTS[0]="$2"
-          shift ;;
-        -h|--help)
-          print_install_help;;
-        *)
-          echo " unkown option ${1} for install." && exit 1
-        ;;
+      -v|--version)
+        ANSIBLE_VERSIONS[0]="$2"
+        shift ;;
+      -t|--type)
+        INSTALL_TYPE[0]="$2"
+        shift ;;
+      -l|--label)
+        ANSIBLE_LABEL[0]="$2"
+        shift ;;
+      -r|--requirements)
+        PYTHON_REQUIREMENTS[0]="$2"
+        shift ;;
+      -h|--help)
+        print_install_help;;
+      *)
+        msg_exit " unkown option ${1} for install."
+      ;;
     esac
     shift
   done
-  [ -z "${ANSIBLE_VERSIONS[0]}" ] && echo " --version is required" && exit 1
+  [ -z "${ANSIBLE_VERSIONS[0]}" ] && msg_exit " --version is required"
   mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
-  curl -s https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh -o ${mytmpdir}/setup.sh
+  curl -s "https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh" -o "${mytmpdir}/setup.sh"
   echo "> You might be asked for your sudo password :"
   # Run Setup
   sudo whoami > /dev/null
-  . ${mytmpdir}/setup.sh
+  # shellcheck disable=SC1090
+  . "${mytmpdir}/setup.sh"
 ;;
 '')
   print_help
