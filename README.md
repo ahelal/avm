@@ -127,11 +127,11 @@ if your creating an image that does not have python or gcc you can do a cleanup 
 
 ## Debugging
 ### Level 1
-Run your setup with **SETUP_VERBOSITY="v" your_setup.sh**
+Run your setup with ```SETUP_VERBOSITY="v" your_setup.sh```
 This should give ou insight on all the goodies
 ### Level 2
 extem debugging 
-Run your setup with **SETUP_VERBOSITY="vv" your_setup.sh**
+Run your setup with ```SETUP_VERBOSITY="vv" your_setup.sh```
 
 ## License
 License (MIT)
