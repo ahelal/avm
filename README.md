@@ -1,13 +1,14 @@
 # Ansible Version Manager (AVM)
 [![Build Status](https://travis-ci.org/ahelal/avm.svg?branch=master)](https://travis-ci.org/ahelal/avm)
 
-Ansible Version Manager (AVM) is a tool to manage multi Ansible installation by creating a python virtual env for each version.
+Ansible Version Manager (AVM) is a tool to manage multi Ansible installation by creating a python virtual environment for each version.
 
 ## Why
-
-- If you need to install multiple version of ansible and add python packages without effecting your global python installation.
-- Running multi version on CI for testing i.e. travis, concourse, jenkins, ...
-- Using the development version of ansible to test and using stable version for production
+* Running multiple version of Ansible on the same host.
+** Using the development version of ansible for testing and using stable version for production.
+** Make your CI run multiple versions for testing i.e. travis, concourse, jenkins, ...
+** Create a wrapper script to manage Ansible within your teams.
+* If you need add python packages to and make it accessible to Ansible without effecting your global python installation. i.e. boto, dnspython, netaddr or others
 
 ## How
 
@@ -130,7 +131,7 @@ if your creating an image that does not have python or gcc you can do a cleanup 
 Run your setup with ```SETUP_VERBOSITY="v" your_setup.sh```
 This should give ou insight on all the goodies
 ### Level 2
-extem debugging 
+extreme debugging
 Run your setup with ```SETUP_VERBOSITY="vv" your_setup.sh```
 
 ## License
