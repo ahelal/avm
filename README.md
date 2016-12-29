@@ -126,8 +126,12 @@ if your creating an image that does not have python or gcc you can do a cleanup 
 ```apk del build-dependencies``` this.
 
 ## Debugging
-Run your setup with **export SETUP_VERBOSITY="v" && bash -x your_setup.sh**
+### Level 1
+Run your setup with ```SETUP_VERBOSITY="v" your_setup.sh```
 This should give ou insight on all the goodies
+### Level 2
+extem debugging 
+Run your setup with ```SETUP_VERBOSITY="vv" your_setup.sh```
 
 ## License
 License (MIT)
