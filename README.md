@@ -87,7 +87,7 @@ avm install --version 2.2.0.0 --label production
 avm install --version devel --label dev --type git
 
 # if you have some python lib to install in the virtual env you can also add python requirements.txt file
-avm install --version 2.0.0.0 --label legacy requirements /path/to/requirements.txt
+avm install --version 2.0.0.0 --label legacy --requirements /path/to/requirements.txt
 ```
 
 ### Command arguments
