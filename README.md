@@ -73,7 +73,7 @@ You can basically override any variable defined in [setup.sh](https://github.com
 ### Setup Command
 You would need first to install avm
 ```bash
-git clone git@github.com:ahelal/avm.git
+git https://github.com/ahelal/avm.git
 cd avm
 ./setup.sh
 ```
