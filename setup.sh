@@ -1,35 +1,175 @@
 #!/bin/sh
+
+## First thing what kind of shell are we running. It turns out that is not so easy to find
+shell_path="$(ps -o comm=  $$ | tr -d "-" | head -1)" # Get this process name
+if ! [ -f "${shell_path}" ]; then shell_path="/bin/${shell_path}"; fi # assume it is in /bin if not full path
+shell_help="$(${shell_path} --help 2>&1 | head -1)" # just get help screen
+if echo "${shell_help}" | grep bash > /dev/null 2>&1; then
+  SHELL_TYPE="bash"
+elif echo "${shell_help}" | grep zsh > /dev/null 2>&1; then
+  SHELL_TYPE="zsh"
+elif echo "${shell_help}" | grep BusyBox > /dev/null 2>&1; then
+  SHELL_TYPE="BusyBox"
+elif echo "${shell_help}" | grep Illegal > /dev/null 2>&1 && readlink "${shell_path}" | grep "dash"; then
+  SHELL_TYPE="dash"
+else
+    echo "**** WARNING I HAVE NO IDEA WHAT KIND OF SHELL YOU ARE RUNNNING ****"
+    echo "**** Might not work. Probably will not if it does let me know :)****"
+fi
+
+# Let's fail
 set -e
 
-## Setup Version to use
-SETUP_VERSION="${SETUP_VERSION-master}"
+## Crazy printing stuff
+##
+MSG_STATUS="0"
 
-## 'could be empty or v or vv'
-SETUP_VERBOSITY="${SETUP_VERBOSITY-}"
-if [ "${SETUP_VERBOSITY}" = "vv" ]; then
-  echo "| verbosity level 2"
+## Print status (print newline if verbose)
+print_status() {
+  printf "[%s] %s ... " "$(date +%H:%M:%S)" "$*"
+  if ! [ -z "${AVM_VERBOSITY}" ]; then printf "\n"; MSG_STATUS=1; fi
+}
+
+# Print a check to complete the status message (ignore if verbose for prety printing)
+print_done() {
+  if [ -z "${AVM_VERBOSITY}" ]; then printf "✅ \n"; MSG_STATUS="0";fi
+}
+
+print_failed() {
+  if [ -z "${AVM_VERBOSITY}" ]; then printf "❌  \n";fi
+}
+
+
+# Print a warning message
+print_warning() {
+  echo "⚠️  $(tput bold)$(tput setaf 1)$*$(tput sgr0) ⚠️ "
+}
+
+# Print a verbose message
+print_verbose() {
+  if ! [ -z "${AVM_VERBOSITY}" ]; then echo "💻  $(tput bold)$*$(tput sgr0)"; fi
+}
+
+# Print a red error
+print_error() {
+  printf "$(tput bold)$(tput setaf 1)%s$(tput sgr0)\n" "$@" >&2
+}
+
+## Print Error msg and exit
+##
+msg_exit() {
+  if [ "${MSG_STATUS}" = "1" ]; then print_failed; fi
+  printf "\n"
+  if ! [ -z "${1}" ]; then
+    print_error "Setup failed 😢."
+    print_error "${1}"
+  else
+    print_error "Setup failed 😢. You can try the folloiwng"
+    print_error "1. Running the setup again."
+    print_error "2. Increase verbosity level i.e. 'AVM_VERBOSITY=v ./YOUR_SETUP'"
+    print_error "3. Crazy verbosity i.e. 'AVM_VERBOSITY=vv ./YOUR_SETUP'"
+    print_error "5. Open an issue and paste the out REMOVE any sensitve data"
+  fi
+  exit 99
+}
+
+setup_canceled() {
+  printf "\n"
+  print_warning "Setup aborted by user 😱. You can run it again later."
+  exit 130
+}
+
+# Print a happy green message
+setup_done() {
+  printf "\n$(tput bold)$(tput setaf 2)🎆 🎇 🎆 🎇  Happy Ansibleing$(tput sgr0) 🎆 🎇 🎆 🎇\n"
+}
+
+setup_exit() {
+  ret="$?"
+  if [ "${ret}" = "0" ]; then
+    setup_done
+  elif [ "${ret}" = "99" ]; then
+    :
+  else
+    # error
+    msg_exit
+  fi
+}
+
+## Setup trap stuf
+# shellcheck disable=SC2154
+trap setup_exit EXIT
+trap setup_canceled INT
+## Variable Section
+
+## Setup veboisty could be empty or v or vv'
+AVM_VERBOSITY="${AVM_VERBOSITY-}"
+AVM_VERBOSITY="$(echo "${AVM_VERBOSITY}" | tr '[:upper:]' '[:lower:]')"
+if [ "${AVM_VERBOSITY}" = "" ] || [ "${AVM_VERBOSITY}" = "stdout" ]; then
+    true # Cool Do nothing
+elif [ "${AVM_VERBOSITY}" = "v" ]; then
+  print_warning " verbosity level 1"
+elif [ "${AVM_VERBOSITY}" = "vv" ]; then
+  print_warning " verbosity level 2"
   set -x
+else
+  msg_exit "Unknown verbosity ${AVM_VERBOSITY}"
 fi
+
+## Run command as a different user if you have SETUP_USER env set
+##
+RUN_COMMAND_AS() {
+  if [ "${SETUP_USER}" = "${USER}" ]; then
+    command_2_run="${1}"
+  else
+    command_2_run=sudo su "${SETUP_USER}" -c "${1}"
+  fi
+
+  case "${AVM_VERBOSITY}" in
+    '')
+      ${command_2_run} > /dev/null
+    ;;
+    "stdout")
+      ${command_2_run}
+    ;;
+    *)
+      (>&2 print_verbose " executing ${command_2_run}")
+      ${command_2_run}
+      ;;
+  esac
+}
+
+## Include a file
+##
+INCLUDE_FILE(){
+  print_verbose "Sourcing file '${1}'"
+  test -f "${1}" > /dev/null 2>&1
+  . "${1}"
+}
+
+## Check git
+[ -z "$(which git)" ] && msg_exit "git is not installed or not in your path."
 
 # By default what version to use for Jinja2 template
 # shellcheck disable=SC2034
-AVM_SETUP_VERSION="${SETUP_VERSION-master}"
+AVM_VERSION="${AVM_VERSION-master}"
 
 ## What user is use for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo "~${SETUP_USER}")}"
-
-## Ubuntu apt pre-req
-UBUNTU_PKGS="${UBUNTU_PKGS:-python-setuptools python-dev build-essential libffi-dev libyaml-dev libssl-dev curl software-properties-common}"
+print_verbose "Setup SETUP_USER=${SETUP_USER} and SETUP_USER_HOME=${SETUP_USER_HOME}"
 
 ## Ansible virtual environment directory
 ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
+
+AVM_SOURCEDIR="${AVM_SOURCEDIR:-$ANSIBLE_BASEDIR/.source}"
 
 ## Supported types is pip and git. If no type is defined pip will be used
 DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 
 ## Array of versions of ansiblet to install and what requirements files for each version
-ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.1.1.0"}"
+ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.2.1.0"}"
+
 ## Label of version if any
 #ANSIBLE_LABEL="${ANSIBLE_LABEL:-"test_v2"}"
 
@@ -42,284 +182,36 @@ FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-'no'}"
 ## Ignore sudo errors
 SETUP_SUDO_IGNORE="${SETUP_SUDO_IGNORE-0}"
 
-COLOR_END='\e[0m'    # End of color
-COLOR_RED='\e[0;31m' # Red
-COLOR_YEL='\e[0;33m' # Yellow
-COLOR_GRN='\e[0;32m' # green
-
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
 ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/avm.j2}"
 
-## Print Error msg
-##
-msg_exit() {
-  printf "> %s$*%s\nExiting...\n" "${COLOR_RED}" "${COLOR_END}"
-  exit 1
-}
-
-## Print warning msg
-##
-msg_warning() {
-  printf "| %s$*%s\n" "${COLOR_YEL}" "${COLOR_END}"
-}
-
-## Run command as a different user if you have SETUP_USER env set
-##
-RUN_COMMAND_AS() {
-  if [ "${SETUP_USER}" = "${USER}" ]; then
-    command_2_run="$1"
-  else
-    command_2_run=sudo su "${SETUP_USER}" -c "$1"
-  fi
-
-  case "${SETUP_VERBOSITY}" in
-    '')
-      ${command_2_run} > /dev/null
-    ;;
-    "stdout")
-      ${command_2_run}
-    ;;
-    *)
-      (>&2 echo "| Exec ${command_2_run}")
-      ${command_2_run}
-      ;;
-  esac
-}
-
-## Create Virtual environment
-##
-ansible_install_venv(){
-  # Create base dir
-  RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}"
-  RUN_COMMAND_AS "chmod 0755 ${ANSIBLE_BASEDIR}"
-  # Create a bin dir in base dir
-  RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}/bin"
-  RUN_COMMAND_AS "chmod 0755 ${ANSIBLE_BASEDIR}/bin"
-  for i in $(seq 1 ${#ANSIBLE_VERSIONS[@]})
-  do
-    i=$((i-1))
-    # shellcheck disable=SC2039
-    ansible_version="${ANSIBLE_VERSIONS[$i]}"
-
-    RUN_COMMAND_AS "mkdir -p ${ANSIBLE_BASEDIR}/${ansible_version}"
-    cd "${ANSIBLE_BASEDIR}/${ansible_version}"
-
-    # 1st create virtual env for this version
-    if [ "${FORCE_VENV_INSTALLATION}" != "no" ] && [ ! -d "./venv" ]; then
-      echo "| ${ansible_version} > Creating/updating venv for ansible ${ansible_version}"
-      RUN_COMMAND_AS "virtualenv venv"
-    else
-      echo "| ${ansible_version} > venv ${ansible_version} exists"
-    fi
-
-    # 2nd Check if python requirments file exists and install requirement file
-    # shellcheck disable=SC2039
-    if ! [ -z "${PYTHON_REQUIREMENTS[$i]}" ]; then
-      echo "| ${ansible_version} > Install python requirments file ${PYTHON_REQUIREMENTS[$i]}"
-      RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ansible_version}/venv/bin/pip install --upgrade --requirement ${PYTHON_REQUIREMENTS[$i]}"
-    fi
-    # 3ed install Ansible in venv
-    if [ "${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}" = "pip" ]; then
-      echo "| $ansible_version > Using 'pip' as installation type"
-      RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ansible_version}/venv/bin/pip install ansible==${ansible_version}"
-    elif [ "${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}" = "git" ]; then
-      [ -z "$(which git)" ] && msg_exit "git is not installed"
-      echo "| ${ansible_version} > Using 'git' as installation type"
-      if [ -d "ansible/.git" ]; then
-        cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
-        RUN_COMMAND_AS "git pull -q --rebase"
-        RUN_COMMAND_AS "git submodule update --quiet --init --recursive"
-      else
-        RUN_COMMAND_AS "git clone git://github.com/ansible/ansible.git --recursive"
-      fi
-      cd "${ANSIBLE_BASEDIR}/${ansible_version}/ansible"
-      # Check out the version and install it
-      RUN_COMMAND_AS "git checkout ${ansible_version}"
-      RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ansible_version}/venv/bin/python setup.py install"
-    else
-      msg_exit "${ansible_version} > Unknown installation type ${INSTALL_TYPE[i]:-$DEFAULT_INSTALL_TYPE}"
-    fi
-
-    # 4th check if we need to setup a label for our installation
-    setup_label_symlink $i
-  done
-}
-
-## check symlink dir and create if needed
-##
-manage_symlink(){
-  set +e
-  # $1 src
-  # $2 dest (link)
-  # $3 global (will run with sudo)
-  actual_dest="$(readlink "${2}")"
-  if [ "${actual_dest}" != "${1}" ] && ! [ -z "${actual_dest}" ]; then
-    ! [ -z "${SETUP_VERBOSITY}" ] && echo "|D Attempt to Removing ${2}"
-    RUN_COMMAND_AS "rm -f ${2}"
-  fi
-  set -e
-  ! [ -z "${SETUP_VERBOSITY}" ] && echo "|D Creating symlink to ${1} ${2}"
-
-  if [ -z "${3}" ]; then
-    run_sudo="sudo "
-  fi
-
-  RUN_COMMAND_AS "${run_sudo}ln -sf ${1} ${2}"
-}
-
-## Setup ansible version label symlink
-##
-setup_label_symlink() {
-  i="${1}" # our index in the array
-  cd "${ANSIBLE_BASEDIR}"
-  # shellcheck disable=SC2039
-  if ! [ -z "${ANSIBLE_LABEL[$i]}" ]; then
-    echo "| Setup label symlink for ${ANSIBLE_LABEL[$i]} to ${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]}"
-    manage_symlink "${ANSIBLE_BASEDIR}/${ANSIBLE_VERSIONS[$i]}" "${ANSIBLE_BASEDIR}/${ANSIBLE_LABEL[$i]}"
-  fi
-}
-
-## Check if I can change to root
-##
-CAN_I_RUN_SUDO=$(sudo -n uptime 2>&1 | grep "load" -c)
-if [ "${CAN_I_RUN_SUDO}" = "0" ] && [ "${SETUP_SUDO_IGNORE}" = "0" ]; then
-  msg_exit "${USER} can not run the sudo command. You might have sudo rights, But password is required. you can run${COLOR_END} ${COLOR_GRN}'sudo whoami && $0'${COLOR_END} to use the cached password in sudo"
-fi
-
-## Ubuntu setup
-##
-setup_ubuntu(){
-  # Ubuntu
-  VER=$(lsb_release -sr)
-  echo "| Updating some ubuntu-${VER} packages (might take some time)"
-  if [ "${VER}" = "14.04" ]; then
-    RUN_COMMAND_AS "sudo apt-get install -y ${UBUNTU_PKGS}"
-  elif [ "${VER}" = "16.04" ]; then
-    RUN_COMMAND_AS "sudo apt -y update"
-    RUN_COMMAND_AS "sudo apt install -y python-minimal"
-    RUN_COMMAND_AS "sudo apt install -y ${UBUNTU_PKGS}"
-  else
-    msg_warning "Your ubuntu linux version was not tested. It might work"
-  fi
-}
-
-
-## Alpine setup
-##
-setup_alpine(){
-  # shellcheck disable=SC1091
-  . /etc/os-release
-  echo "| Updating some alpine packages (might take some time)"
-  if [ "${PRETTY_NAME}" != "Alpine Linux v3.4" ]; then
-    msg_warning "Your Alpine linux version was not tested. It might work"
-  fi
-  RUN_COMMAND_AS "sudo /sbin/apk add --no-cache --quiet python py-pip"
-  RUN_COMMAND_AS "sudo /sbin/apk --no-cache add --virtual build-dependencies \
-                            python-dev libffi-dev openssl-dev build-base git"
-}
-
-
-## Redhat setup
-##
-setup_redhat(){
-  msg_exit "REDHAT STILL EXPERMINTAL"
-}
-
-## Get template
-avm_script_Setup(){
-  filename=$( echo "${0}" | sed  's|/||g' )
-  ## Temp get stdout
-  TEMP_SETUP_VERBOSITY=${SETUP_VERBOSITY}
-  SETUP_VERBOSITY="stdout"
-  my_temp_dir=$(RUN_COMMAND_AS "mktemp -dt ${filename}.XXXX")
-  # if my_temp_dir is empty (non gnu mktemp)
-  [ -z "${my_temp_dir}" ] && my_temp_dir=$(RUN_COMMAND_AS "mktemp -dt")
-  SETUP_VERBOSITY=${TEMP_SETUP_VERBOSITY}
-
-cat > "${my_temp_dir}/AVM_YML" <<- EOM
----
- - hosts: all
-   gather_facts: False
-   connection: local
-   tasks:
-      - template: src="{{ ANSIBLE_VERSION_TEMPLATE_PATH }}" dest="{{ ANSIBLE_BASEDIR }}/avm" owner="{{ SETUP_USER }}" mode=0755
-EOM
-
-  # Get ansible yaml and j2 file from github
-  RUN_COMMAND_AS "curl -f -s -o ${my_temp_dir}/AVM_J2 ${ANSIBLE_VERSION_J2_HTTPS}"
-
-  echo "${my_temp_dir}"
-}
-
-## Setup avm binary file
-##
-setup_version_bin() {
-  my_temp_dir=$(avm_script_Setup)
-
-  RUN_COMMAND_AS "${ANSIBLE_BASEDIR}/${ANSIBLE_DEFAULT_VERSION}/venv/bin/ansible-playbook -i localhost, ${my_temp_dir}/AVM_YML \
-    -e ANSIBLE_BIN_PATH=${ANSIBLE_BIN_PATH} \
-    -e ANSIBLE_BASEDIR=${ANSIBLE_BASEDIR} \
-    -e ANSIBLE_SELECTED_VERSION=${ANSIBLE_DEFAULT_VERSION} \
-    -e SETUP_USER=${SETUP_USER} \
-    -e ANSIBLE_VERSION_TEMPLATE_PATH=${my_temp_dir}/AVM_J2"
-
-  # Require to run sudo as assumption is it will be global
-  echo "| Creating symlink ${ANSIBLE_BASEDIR}/avm ${ANSIBLE_BIN_PATH}/avm"
-  manage_symlink "${ANSIBLE_BASEDIR}/avm" "${ANSIBLE_BIN_PATH}/avm"
-
-  for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault ansible-console
-  do
-      # Require to run sudo as assumption is it will be global
-      echo "| Creating global symlink ${ANSIBLE_BASEDIR}/bin/${bin} is pointing to ${ANSIBLE_BIN_PATH}/$bin"
-      manage_symlink "${ANSIBLE_BASEDIR}/bin/${bin}" "${ANSIBLE_BIN_PATH}/${bin}" RUN_SUDO
-  done
-
-  echo "| Setting up default virtualenv to ${ANSIBLE_DEFAULT_VERSION}"
-  RUN_COMMAND_AS "${ANSIBLE_BIN_PATH}/avm set ${ANSIBLE_DEFAULT_VERSION}"
-}
-
-## Check setup home dir
-##
-! [ -d "${SETUP_USER_HOME}" ] && msg_exit "Your home directory \"${SETUP_USER_HOME}\" doesn't exist."
-
-## Do some checks user
-##
-[ "$(whoami)" = "root" ] && msg_exit "Please run as a normal user not root."
-
-# Check your distro is supported
-##
-
-system=$(uname)
-if [ "${system}" = "Linux" ]; then
-  # shellcheck disable=SC1091
-  [ -f  /etc/os-release ] && . /etc/os-release
-  if [ -f /etc/redhat-release ]; then
-    setup_redhat
-  elif [ -f /etc/lsb-release ]; then
-    setup_ubuntu
-  elif [ "${ID}" = "alpine" ]; then
-    setup_alpine
-  else
-    msg_warning "Your linux system was not tested. It might work"
-  fi
-fi
-
-## Do some checks python curl and easy_install
-##
-[ -z "$(which python)" ] && msg_exit "Opps python is not installed or not in your path."
-[ -z "$(which curl)" ] && msg_exit "curl is not installed or not in your path."
-if [ -z "$(which easy_install)" ] && [ -z "$(which pip)" ]; then
-   msg_exit "easy_install or pip is not installed or not in your path."
-fi
-
-# Install virtual env
-if ! [ -z "$(which pip)" ]; then
-  sudo -H pip install -q --upgrade virtualenv
+print_status "Setting AVM version '${AVM_VERSION}' directory"
+######## At this point setup will start ########
+## We have 2 paths
+##   1- cloning the repo (default option since we will be curling and dont have all the repo)
+##   2- Local used for development and in CI for testing
+if [  "${AVM_VERSION}" = "local" ]; then
+    avm_dir="$(pwd)"
 else
-  sudo -H easy_install -q --upgrade virtualenv
+    ## Clone
+    avm_dir="$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')"
+    print_verbose "cloning 'https://github.com/ahelal/avm.git' to ${avm_dir}"
+    git clone https://github.com/ahelal/avm.git "${avm_dir}" >/dev/null 2>&1
+    cd "${avm_dir}/"
+    git checkout "${AVM_VERSION}" >/dev/null 2>&1
 fi
+print_done
+
+# Do some checks
+print_status "Checking your system has minumum requirements"
+INCLUDE_FILE "${avm_dir}/avm/checks.sh"
+print_done
+
+# Include required files
+INCLUDE_FILE "${avm_dir}/avm/_distro.sh"
+INCLUDE_FILE "${avm_dir}/avm/ansible_install.sh"
 
 # Install ansible in the virtual envs
 ansible_install_venv
@@ -327,5 +219,4 @@ ansible_install_venv
 # Setup avm binary file
 setup_version_bin
 
-# We are done
-printf "%s***** Happy ansibleing *****%s" "${COLOR_GRN}" "${COLOR_END}"
+exit 0

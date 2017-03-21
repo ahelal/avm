@@ -53,7 +53,7 @@ ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
 # Whats the default version
 ANSIBLE_DEFAULT_VERSION="v2.1"
 
-#SETUP_VERBOSITY="vv"
+#AVM_VERBOSITY="vv"
 
 ## Create a temp dir to download the setup script
 filename=$( echo ${0} | sed  's|/||g' )
@@ -128,11 +128,11 @@ if your creating an image that does not have python or gcc you can do a cleanup 
 
 ## Debugging
 ### Level 1
-Run your setup with ```SETUP_VERBOSITY="v" your_setup.sh```
+Run your setup with ```AVM_VERBOSITY="v" your_setup.sh```
 This should give ou insight on all the goodies
 ### Level 2
 extreme debugging
-Run your setup with ```SETUP_VERBOSITY="vv" your_setup.sh```
+Run your setup with ```AVM_VERBOSITY="vv" your_setup.sh```
 
 ## License
 License (MIT)

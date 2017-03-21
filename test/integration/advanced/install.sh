@@ -36,6 +36,6 @@ ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
 # Whats the default version
 ANSIBLE_DEFAULT_VERSION="v2.1"
 
-#SETUP_VERBOSITY="vv"
+#AVM_VERBOSITY="vv"
 
 . $AVM_SETUP_PATH

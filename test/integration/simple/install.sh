@@ -1,7 +1,9 @@
-#!/bin/bash
-set -e
-echo "Running travis simple.sh"
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+#!/bin/sh
+set -ex
+
+echo "Running simple.sh"
+MY_PATH="$(dirname "$0")"          # relative
+DIR="$( cd "$MY_PATH" && pwd )"  # absolutized and normalized
 
 AVM_SETUP_PATH="/avm/setup.sh"
 
@@ -35,6 +37,6 @@ ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
 ANSIBLE_DEFAULT_VERSION="v1"
 
 SETUP_VERSION=feature/optional_Setup
-#SETUP_VERBOSITY="vv"
+#AVM_VERBOSITY="vv"
 #
 . $AVM_SETUP_PATH
