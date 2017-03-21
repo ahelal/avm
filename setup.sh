@@ -17,28 +17,29 @@ else
     echo "**** Might not work. Probably will not if it does let me know :)****"
 fi
 
-# Let's fail
 set -e
+
+## default variable
+MSG_STATUS="0"
+CLEAN_DIR="0"
 
 ## Crazy printing stuff
 ##
-MSG_STATUS="0"
 
 ## Print status (print newline if verbose)
 print_status() {
   printf "[%s] %s ... " "$(date +%H:%M:%S)" "$*"
-  if ! [ -z "${AVM_VERBOSITY}" ]; then printf "\n"; MSG_STATUS=1; fi
+  if ! [ -z "${AVM_VERBOSE}" ]; then printf "\n"; MSG_STATUS=1; fi
 }
 
 # Print a check to complete the status message (ignore if verbose for prety printing)
 print_done() {
-  if [ -z "${AVM_VERBOSITY}" ]; then printf "✅ \n"; MSG_STATUS="0";fi
+  if [ -z "${AVM_VERBOSE}" ]; then printf "✅ \n"; MSG_STATUS="0";fi
 }
 
 print_failed() {
-  if [ -z "${AVM_VERBOSITY}" ]; then printf "❌  \n";fi
+  if [ -z "${AVM_VERBOSE}" ]; then printf "❌  \n";fi
 }
-
 
 # Print a warning message
 print_warning() {
@@ -47,7 +48,7 @@ print_warning() {
 
 # Print a verbose message
 print_verbose() {
-  if ! [ -z "${AVM_VERBOSITY}" ]; then echo "💻  $(tput bold)$*$(tput sgr0)"; fi
+  if ! [ -z "${AVM_VERBOSE}" ]; then echo "💻  $(tput bold)$*$(tput sgr0)"; fi
 }
 
 # Print a red error
@@ -66,8 +67,8 @@ msg_exit() {
   else
     print_error "Setup failed 😢. You can try the folloiwng"
     print_error "1. Running the setup again."
-    print_error "2. Increase verbosity level i.e. 'AVM_VERBOSITY=v ./YOUR_SETUP'"
-    print_error "3. Crazy verbosity i.e. 'AVM_VERBOSITY=vv ./YOUR_SETUP'"
+    print_error "2. Increase verbosity level i.e. 'AVM_VERBOSE=v ./YOUR_SETUP'"
+    print_error "3. Crazy verbosity i.e. 'AVM_VERBOSE=vv ./YOUR_SETUP'"
     print_error "5. Open an issue and paste the out REMOVE any sensitve data"
   fi
   exit 99
@@ -86,6 +87,9 @@ setup_done() {
 
 setup_exit() {
   ret="$?"
+  if [ "${CLEAN_DIR}" = "1" ]; then
+    print_verbose "rm ${avm_dir}"
+  fi
   if [ "${ret}" = "0" ]; then
     setup_done
   elif [ "${ret}" = "99" ]; then
@@ -96,24 +100,22 @@ setup_exit() {
   fi
 }
 
-## Setup trap stuf
-# shellcheck disable=SC2154
+## Setup signal traps
 trap setup_exit EXIT
 trap setup_canceled INT
-## Variable Section
 
 ## Setup veboisty could be empty or v or vv'
-AVM_VERBOSITY="${AVM_VERBOSITY-}"
-AVM_VERBOSITY="$(echo "${AVM_VERBOSITY}" | tr '[:upper:]' '[:lower:]')"
-if [ "${AVM_VERBOSITY}" = "" ] || [ "${AVM_VERBOSITY}" = "stdout" ]; then
-    true # Cool Do nothing
-elif [ "${AVM_VERBOSITY}" = "v" ]; then
+AVM_VERBOSE="${AVM_VERBOSE-}"
+AVM_VERBOSE="$(echo "${AVM_VERBOSE}" | tr '[:upper:]' '[:lower:]')"
+if [ "${AVM_VERBOSE}" = "" ] || [ "${AVM_VERBOSE}" = "stdout" ]; then
+    : # Cool Do nothing
+elif [ "${AVM_VERBOSE}" = "v" ]; then
   print_warning " verbosity level 1"
-elif [ "${AVM_VERBOSITY}" = "vv" ]; then
+elif [ "${AVM_VERBOSE}" = "vv" ]; then
   print_warning " verbosity level 2"
   set -x
 else
-  msg_exit "Unknown verbosity ${AVM_VERBOSITY}"
+  msg_exit "Unknown verbosity ${AVM_VERBOSE}"
 fi
 
 ## Run command as a different user if you have SETUP_USER env set
@@ -125,7 +127,7 @@ RUN_COMMAND_AS() {
     command_2_run=sudo su "${SETUP_USER}" -c "${1}"
   fi
 
-  case "${AVM_VERBOSITY}" in
+  case "${AVM_VERBOSE}" in
     '')
       ${command_2_run} > /dev/null
     ;;
@@ -133,7 +135,7 @@ RUN_COMMAND_AS() {
       ${command_2_run}
     ;;
     *)
-      (>&2 print_verbose " executing ${command_2_run}")
+      (>&2 print_verbose "Executing ${command_2_run}")
       ${command_2_run}
       ;;
   esac
@@ -147,10 +149,9 @@ INCLUDE_FILE(){
   . "${1}"
 }
 
-## Check git
+## Check if git is installed
 [ -z "$(which git)" ] && msg_exit "git is not installed or not in your path."
 
-# By default what version to use for Jinja2 template
 # shellcheck disable=SC2034
 AVM_VERSION="${AVM_VERSION-master}"
 
@@ -185,8 +186,6 @@ SETUP_SUDO_IGNORE="${SETUP_SUDO_IGNORE-0}"
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
-ANSIBLE_VERSION_J2_HTTPS="${ANSIBLE_VERSION_J2_HTTPS:-https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/avm.j2}"
-
 print_status "Setting AVM version '${AVM_VERSION}' directory"
 ######## At this point setup will start ########
 ## We have 2 paths
@@ -201,6 +200,7 @@ else
     git clone https://github.com/ahelal/avm.git "${avm_dir}" >/dev/null 2>&1
     cd "${avm_dir}/"
     git checkout "${AVM_VERSION}" >/dev/null 2>&1
+    CLEAN_DIR="1"
 fi
 print_done
 

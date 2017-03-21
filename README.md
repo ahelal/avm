@@ -49,7 +49,6 @@ INSTALL_TYPE[2]="git"
 ANSIBLE_LABEL[2]="devel"
 PYTHON_REQUIREMENTS[2]="/avm/test/integration/advanced/requirements.txt"
 
-ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
 # Whats the default version
 ANSIBLE_DEFAULT_VERSION="v2.1"
 

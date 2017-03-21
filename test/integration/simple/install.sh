@@ -32,7 +32,7 @@ ANSIBLE_LABEL[2]="devel"
 
 SETUP_USER=kitchen
 
-ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
+#TODO sould properly replace ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
 # Whats the default version
 ANSIBLE_DEFAULT_VERSION="v1"
 
