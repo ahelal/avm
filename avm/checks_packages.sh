@@ -1,7 +1,7 @@
 #!/bin/sh
 
 general_packages(){
-    # yeah series containers :(
+    # yeah serious containers :(
     for package in sed grep wc curl python
     do
         is_installed "${package}"

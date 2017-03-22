@@ -1,8 +1,7 @@
 #!/bin/sh
 set -e
 
-# AVM_BASEDIR="/Users/ahelal/.avm"
-# ANSIBLE_SELECTED_VERSION="2.2.1.0"
+# avm cli tool
 
 AVM_BASEDIR="{{ AVM_BASEDIR }}"
 # Just to fall back to default this will be overwriten later on in the script
@@ -150,6 +149,7 @@ case $1 in
         msg_exit "${SHELL} is not supported."
     fi
   ;;
+# TODO: renable and test
 # "install" )
 #   [ -z "$2" ] && [ -z "$3" ] && msg_exit "install requires arguments. for more help type 'avm install --help"
 #   [ "${2}" = "-h" ] || [ "${2}" = "--help" ] && print_install_help
