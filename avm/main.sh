@@ -29,7 +29,6 @@ AVM_IGNORE_SUDO="${AVM_IGNORE_SUDO-0}"
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
-
 print_status "Checking general system has minumum requirements"
 INCLUDE_FILE "${avm_dir}/avm/checks_general.sh"
 general_check
@@ -38,6 +37,10 @@ print_done
 # include distro files (might install some stuff if needed)
 INCLUDE_FILE "${avm_dir}/avm/_distro.sh"
 supported_distro
+
+print_status "Checking post distro check."
+INCLUDE_FILE "${avm_dir}/avm/checks_post.sh"
+checks_post
 
 print_status "Checking packages on your system has minumum requirements"
 INCLUDE_FILE "${avm_dir}/avm/checks_packages.sh"

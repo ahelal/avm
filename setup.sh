@@ -23,6 +23,32 @@ set -e
 MSG_STATUS="0"
 CLEAN_DIR="0"
 
+## Check a command
+##  $1 binary to check
+##  $2 report but don't fail
+is_installed(){
+  if command -v "${1}" > /dev/null 2>&1; then
+    fail="0"
+  else
+    fail="1"
+  fi
+  if ! [ -z "${2}" ]; then
+    echo "${fail}"
+  else
+    if [ "${fail}" = "1" ]; then msg_exit "Opps '${1}' is not installed or not in your path."; fi
+  fi
+}
+
+tput_installed=$(is_installed "tput" 1)
+tput_alternative(){
+  printf "%s" "${*}"
+}
+if [ "${tput_installed}" = "1" ]; then
+  alias tput=tput_alternative
+fi
+
+
+
 ## Crazy printing stuff
 ##
 
@@ -154,22 +180,6 @@ INCLUDE_FILE(){
 
 ## Good to know what shell
 print_verbose "AVM run using shell=${SHELL_TYPE}"
-
-## Check a command
-##  $1 binary to check
-##  $2 report but don't fail
-is_installed(){
-  if command -v "${1}" > /dev/null 2>&1; then
-    fail="0"
-  else
-    fail="1"
-  fi
-  if ! [ -z "${3}" ]; then
-    echo "${fail}"
-  else
-    if [ "${fail}" = "1" ]; then msg_exit "Opps '${1}' is not installed or not in your path."; fi
-  fi
-}
 
 # AVM version to install. Supports git releases (default to master)
 # if set to "local" will use pwd good for debuging and CI

@@ -16,6 +16,7 @@ supported_distro(){
       setup_ubuntu
     elif [ "${ID}" = "alpine" ]; then
       print_verbose "Your system is Alpine"
+      INCLUDE_FILE "${avm_dir}/avm/_distro_alpine.sh"
       setup_alpine
     else
       print_warning "Your linux system was not tested. It might work!"

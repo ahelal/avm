@@ -30,7 +30,7 @@ platforms:
      image                : alpine:3.4
      platform             : alpine
      provision_command    :
-              - apk add sudo
+              - apk add sudo git ncurses
               - echo "auth       sufficient pam_rootok.so" > /etc/pam.d/su
 
 suites                    :
