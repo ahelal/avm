@@ -82,18 +82,21 @@ setup_canceled() {
 
 # Print a happy green message
 setup_done() {
-  printf "\n$(tput bold)$(tput setaf 2)🎆 🎇 🎆 🎇  Happy Ansibleing$(tput sgr0) 🎆 🎇 🎆 🎇\n"
+  printf "\n%s%s🎆 🎇 🎆 🎇  Happy Ansibleing%s 🎆 🎇 🎆 🎇\n" "$(tput bold)" "$(tput setaf 2)" "$(tput sgr0)"
 }
 
 setup_exit() {
   ret="$?"
   if [ "${CLEAN_DIR}" = "1" ]; then
-    print_verbose "rm ${avm_dir}"
+    print_verbose "Remove temp dir located in ${avm_dir}"
+    rm -rf "${avm_dir}"
   fi
   if [ "${ret}" = "0" ]; then
     setup_done
   elif [ "${ret}" = "99" ]; then
-    :
+    : # We failed lets not do anything :(
+  elif [ "${ret}" = "130" ]; then
+    : # User cancled
   else
     # error
     msg_exit
@@ -122,21 +125,20 @@ fi
 ##
 RUN_COMMAND_AS() {
   if [ "${SETUP_USER}" = "${USER}" ]; then
-    command_2_run="${1}"
+    command_2_run=${*}
   else
-    command_2_run=sudo su "${SETUP_USER}" -c "${1}"
+    command_2_run=sudo su "${SETUP_USER}" -c "${*}"
   fi
-
   case "${AVM_VERBOSE}" in
     '')
-      ${command_2_run} > /dev/null
+      eval "${command_2_run}" > /dev/null 2>&1
     ;;
     "stdout")
-      ${command_2_run}
+      eval "${command_2_run}"
     ;;
     *)
       (>&2 print_verbose "Executing ${command_2_run}")
-      ${command_2_run}
+      eval "${command_2_run}"
       ;;
   esac
 }
@@ -145,31 +147,34 @@ RUN_COMMAND_AS() {
 ##
 INCLUDE_FILE(){
   print_verbose "Sourcing file '${1}'"
-  test -f "${1}" > /dev/null 2>&1
+  test -f "${1}"
+  # shellcheck disable=SC1090
   . "${1}"
 }
+
+## Good to know what shell
+print_verbose "AVM run using shell=${SHELL_TYPE}"
 
 ## Check if git is installed
 [ -z "$(which git)" ] && msg_exit "git is not installed or not in your path."
 
-# shellcheck disable=SC2034
+# AVM version to install. Supports git releases (default to master)
+# if set to "local" will use pwd good for debuging and ci
 AVM_VERSION="${AVM_VERSION-master}"
 
-## What user is use for the setup and he's home dir
+## What user is used for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo "~${SETUP_USER}")}"
 print_verbose "Setup SETUP_USER=${SETUP_USER} and SETUP_USER_HOME=${SETUP_USER_HOME}"
 
-## Ansible virtual environment directory
-ANSIBLE_BASEDIR="${ANSIBLE_BASEDIR:-$SETUP_USER_HOME/.venv_ansible}"
-
-AVM_SOURCEDIR="${AVM_SOURCEDIR:-$ANSIBLE_BASEDIR/.source}"
+## AVM base dir (default to ~/.avm)
+AVM_BASEDIR="${AVM_BASEDIR:-$SETUP_USER_HOME/.avm}"
 
 ## Supported types is pip and git. If no type is defined pip will be used
 DEFAULT_INSTALL_TYPE="${DEFAULT_INSTALL_TYPE:-pip}"
 
 ## Array of versions of ansiblet to install and what requirements files for each version
-ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.2.1.0"}"
+ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS_0:-"2.2.1.0"}"
 
 ## Label of version if any
 #ANSIBLE_LABEL="${ANSIBLE_LABEL:-"test_v2"}"
@@ -178,39 +183,48 @@ ANSIBLE_VERSIONS="${ANSIBLE_VERSIONS[0]:-"2.2.1.0"}"
 ANSIBLE_DEFAULT_VERSION="${ANSIBLE_DEFAULT_VERSION:-${ANSIBLE_VERSIONS}}"
 
 ## Should we force venv installation
-FORCE_VENV_INSTALLATION="${FORCE_VENV_INSTALLATION:-'no'}"
+AVM_UPDATE_VENV="${AVM_UPDATE_VENV:-'no'}"
 
 ## Ignore sudo errors
-SETUP_SUDO_IGNORE="${SETUP_SUDO_IGNORE-0}"
+AVM_IGNORE_SUDO="${AVM_IGNORE_SUDO-0}"
 
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
+## We have 2 options depanding on verion
+##   1- Local used for development and in CI for testing
+##   2- Cloning the repo from github then checking the version
 print_status "Setting AVM version '${AVM_VERSION}' directory"
-######## At this point setup will start ########
-## We have 2 paths
-##   1- cloning the repo (default option since we will be curling and dont have all the repo)
-##   2- Local used for development and in CI for testing
-if [  "${AVM_VERSION}" = "local" ]; then
-    avm_dir="$(pwd)"
+if [ "${AVM_VERSION}" = "local" ]; then
+    MY_PATH="$(dirname "${0}")"        # relative
+    DIR="$( cd "${MY_PATH}" && pwd )"  # absolutized and normalized
+    avm_dir="${DIR}"
 else
-    ## Clone
-    avm_dir="$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')"
+    avm_dir="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
     print_verbose "cloning 'https://github.com/ahelal/avm.git' to ${avm_dir}"
-    git clone https://github.com/ahelal/avm.git "${avm_dir}" >/dev/null 2>&1
-    cd "${avm_dir}/"
-    git checkout "${AVM_VERSION}" >/dev/null 2>&1
+    git clone https://github.com/ahelal/avm.git "${avm_dir}" > /dev/null 2>&1
+    cd "${avm_dir}"
+    print_verbose "checking out ${AVM_VERSION}"
+    git checkout "${AVM_VERSION}" > /dev/null 2>&1
     CLEAN_DIR="1"
 fi
 print_done
 
-# Do some checks
-print_status "Checking your system has minumum requirements"
-INCLUDE_FILE "${avm_dir}/avm/checks.sh"
+print_status "Checking general system has minumum requirements"
+INCLUDE_FILE "${avm_dir}/avm/checks_general.sh"
+general_check
+print_done
+
+# include distro files (might install some stuff if needed)
+INCLUDE_FILE "${avm_dir}/avm/_distro.sh"
+supported_distro
+
+print_status "Checking packages on your system has minumum requirements"
+INCLUDE_FILE "${avm_dir}/avm/checks_packages.sh"
+general_packages
 print_done
 
 # Include required files
-INCLUDE_FILE "${avm_dir}/avm/_distro.sh"
 INCLUDE_FILE "${avm_dir}/avm/ansible_install.sh"
 
 # Install ansible in the virtual envs

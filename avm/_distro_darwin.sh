@@ -1,7 +1,6 @@
 #!/bin/sh
 
-print_status "Installing/upgrading virtualenv for MAC."
-# Install virtual env
+print_status "Installing/upgrading virtualenv for MacOSX"
 if ! [ -z "$(which pip)" ]; then
   sudo -H pip install -q --upgrade virtualenv
 else

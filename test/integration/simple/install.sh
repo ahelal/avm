@@ -1,11 +1,8 @@
-#!/bin/sh
-set -ex
+#!/bin/bash
+set -e
 
 echo "Running simple.sh"
-MY_PATH="$(dirname "$0")"          # relative
-DIR="$( cd "$MY_PATH" && pwd )"  # absolutized and normalized
-
-AVM_SETUP_PATH="/avm/setup.sh"
+TEST_SHELL="${TEST_SHELL-/bin/sh}"
 
 if [ -f /etc/redhat-release ]; then
   yum update
@@ -15,28 +12,29 @@ if [ -f /etc/lsb-release ]; then
   sudo apt-get -y install git
 fi
 
+## Setup config
+export SETUP_USER=kitchen
+# don't clone use local path
+export AVM_VERSION="local"
+export AVM_VERBOSE="vv"
+
+## Whats the default version
+export ANSIBLE_DEFAULT_VERSION="v1"
+
 ## Install Ansible 1.9.6
-ANSIBLE_VERSIONS[0]="1.9.6"
-INSTALL_TYPE[0]="pip"
-ANSIBLE_LABEL[0]="v1"
+export ANSIBLE_VERSIONS_0="1.9.6"
+export INSTALL_TYPE_0="pip"
+export ANSIBLE_LABEL_0="v1"
 
 ## Install Ansible 2.1
-ANSIBLE_VERSIONS[1]="2.1.1.0"
-INSTALL_TYPE[1]="pip"
-ANSIBLE_LABEL[1]="v2"
+export ANSIBLE_VERSIONS_1="2.1.1.0"
+export INSTALL_TYPE_1="pip"
+export ANSIBLE_LABEL_1="v2"
 
 ## Install Ansible stable-2.0
-ANSIBLE_VERSIONS[2]="devel"
-INSTALL_TYPE[2]="git"
-ANSIBLE_LABEL[2]="devel"
+export ANSIBLE_VERSIONS_2="devel"
+export INSTALL_TYPE_2="git"
+export ANSIBLE_LABEL_2="devel"
 
-SETUP_USER=kitchen
-
-#TODO sould properly replace ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
-# Whats the default version
-ANSIBLE_DEFAULT_VERSION="v1"
-
-SETUP_VERSION=feature/optional_Setup
-#AVM_VERBOSITY="vv"
-#
-. $AVM_SETUP_PATH
+## Run the setup
+${TEST_SHELL} /avm/setup.sh
