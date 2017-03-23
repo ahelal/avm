@@ -47,8 +47,6 @@ if [ "${tput_installed}" = "1" ]; then
   alias tput=tput_alternative
 fi
 
-
-
 ## Crazy printing stuff
 ##
 
@@ -93,9 +91,8 @@ msg_exit() {
   else
     print_error "Setup failed 😢. You can try the folloiwng"
     print_error "1. Running the setup again."
-    print_error "2. Increase verbosity level i.e. 'AVM_VERBOSE=v ./YOUR_SETUP'"
-    print_error "3. Crazy verbosity i.e. 'AVM_VERBOSE=vv ./YOUR_SETUP'"
-    print_error "5. Open an issue and paste the out REMOVE any sensitve data"
+    print_error "2. Increase verbosity level i.e. 'AVM_VERBOSE=v ./YOUR_SETUP' support '', 'v', 'vv' or 'vvv'"
+    print_error "3. Open an issue and paste the out REMOVE any sensitve data"
   fi
   exit 99
 }
@@ -133,7 +130,7 @@ setup_exit() {
 trap setup_exit EXIT
 trap setup_canceled INT
 
-## Setup veboisty could be empty or v or vv'
+## Setup veboisty could be empty or v, vv or vvv'
 AVM_VERBOSE="${AVM_VERBOSE-}"
 AVM_VERBOSE="$(echo "${AVM_VERBOSE}" | tr '[:upper:]' '[:lower:]')"
 if [ "${AVM_VERBOSE}" = "" ] || [ "${AVM_VERBOSE}" = "stdout" ]; then
@@ -142,6 +139,8 @@ elif [ "${AVM_VERBOSE}" = "v" ]; then
   print_warning " verbosity level 1"
 elif [ "${AVM_VERBOSE}" = "vv" ]; then
   print_warning " verbosity level 2"
+elif [ "${AVM_VERBOSE}" = "vvv" ]; then
+  print_warning " verbosity level 3"
   set -x
 else
   msg_exit "Unknown verbosity ${AVM_VERBOSE}"
@@ -156,7 +155,7 @@ RUN_COMMAND_AS() {
     command_2_run=sudo su "${SETUP_USER}" -c "${*}"
   fi
   case "${AVM_VERBOSE}" in
-    '')
+    '' | 'v')
       eval "${command_2_run}" > /dev/null 2>&1
     ;;
     "stdout")
@@ -186,24 +185,27 @@ print_verbose "AVM run using shell=${SHELL_TYPE}"
 AVM_VERSION="${AVM_VERSION-master}"
 
 ## We have 2 options depanding on verion
-##   1- local used for development and in CI for testing
-##   2- Cloning the repo from github then checking the version
-print_status "Setting AVM version '${AVM_VERSION}' directory"
-is_installed "git"
-if [ "${AVM_VERSION}" = "local" ]; then
-    MY_PATH="$(dirname "${0}")"        # relative
-    DIR="$( cd "${MY_PATH}" && pwd )"  # absolutized and normalized
-    avm_dir="${DIR}"
-else
-    avm_dir="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
-    print_verbose "Cloning 'https://github.com/ahelal/avm.git' to ${avm_dir}"
-    git clone https://github.com/ahelal/avm.git "${avm_dir}" > /dev/null 2>&1
-    cd "${avm_dir}"
-    print_verbose "checking out ${AVM_VERSION}"
-    git checkout "${AVM_VERSION}" > /dev/null 2>&1
-    CLEAN_DIR="1"
-fi
-print_done
+##  1- local used for development and in CI for testing
+##  2- Cloning the repo from github then checking the version
+avm_dir_setup(){
+  print_status "Setting AVM version '${AVM_VERSION}' directory"
+  is_installed "git"
+  if [ "${AVM_VERSION}" = "local" ]; then
+      MY_PATH="$(dirname "${0}")"        # relative
+      DIR="$( cd "${MY_PATH}" && pwd )"  # absolutized and normalized
+      avm_dir="${DIR}"
+  else
+      avm_dir="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
+      print_verbose "Cloning 'https://github.com/ahelal/avm.git' to ${avm_dir}"
+      git clone https://github.com/ahelal/avm.git "${avm_dir}" > /dev/null 2>&1
+      cd "${avm_dir}"
+      print_verbose "checking out ${AVM_VERSION}"
+      git checkout "${AVM_VERSION}" > /dev/null 2>&1
+      CLEAN_DIR="1"
+  fi
+  print_done
+}
+avm_dir_setup
 
 # Include Main file
 INCLUDE_FILE "${avm_dir}/avm/main.sh"

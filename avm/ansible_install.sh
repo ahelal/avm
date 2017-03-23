@@ -14,7 +14,7 @@ ansible_install_venv(){
   RUN_COMMAND_AS "chmod 0755 ${AVM_BASEDIR}/bin"
   count_ansible_version=$(printenv | sort | grep ANSIBLE_VERSIONS_  | sed 's/=.*//' | wc -l | tr -d ' ' )
   if [ "${count_ansible_version}" = "0" ]; then
-    msg_exit "You have not specified any ANSIBLE_VERSIONS_X to install :("
+    print_warning "You have not specified any ANSIBLE_VERSIONS_X to install :( so no ansible will be installed."
   else
     print_verbose "Number of Ansible versions to install ${count_ansible_version}"
   fi
@@ -134,8 +134,22 @@ setup_version_bin() {
       manage_symlink "${AVM_BASEDIR}/bin/${bin}" "${ANSIBLE_BIN_PATH}/${bin}" RUN_SUDO
   done
   print_done
+}
 
-  print_status "Setting up default version to ${ANSIBLE_DEFAULT_VERSION}"
-  RUN_COMMAND_AS "${ANSIBLE_BIN_PATH}/avm set ${ANSIBLE_DEFAULT_VERSION}"
-  print_done
+setup_default_version() {
+  if [ -z "${ANSIBLE_DEFAULT_VERSION}" ]; then
+      # Try to fall back to first item
+      first_item=$(printenv | sort | grep ANSIBLE_VERSIONS_  | sed 's/=.*//' | head -1)
+      ansible_version=$(get_variable "${first_item}" )
+      ANSIBLE_DEFAULT_VERSION="${ansible_version}"
+  fi
+  # Fallback to first element
+  if [ -z "${ANSIBLE_DEFAULT_VERSION}" ]; then
+    print_verbose "No default version set and no fallback."
+  else
+    print_status "Setting up default version to ${ANSIBLE_DEFAULT_VERSION}"
+    RUN_COMMAND_AS "${ANSIBLE_BIN_PATH}/avm set ${ANSIBLE_DEFAULT_VERSION}"
+    print_done
+  fi
+
 }

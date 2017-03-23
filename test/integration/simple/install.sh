@@ -18,23 +18,23 @@ export SETUP_USER=kitchen
 export AVM_VERSION="local"
 export AVM_VERBOSE="vv"
 
-## Whats the default version
-export ANSIBLE_DEFAULT_VERSION="v1"
-
-## Install Ansible 1.9.6
+## Install Ansible 1.9.6 using pip and label it 'v1'
 export ANSIBLE_VERSIONS_0="1.9.6"
 export INSTALL_TYPE_0="pip"
 export ANSIBLE_LABEL_0="v1"
 
-## Install Ansible 2.1
+## Install Ansible 2.1.1 using pip and label it 'v2'
 export ANSIBLE_VERSIONS_1="2.1.1.0"
 export INSTALL_TYPE_1="pip"
 export ANSIBLE_LABEL_1="v2"
 
-## Install Ansible stable-2.0
+## Install Ansible devel using git and label it 'devel'
 export ANSIBLE_VERSIONS_2="devel"
 export INSTALL_TYPE_2="git"
 export ANSIBLE_LABEL_2="devel"
+
+## Whats the default version
+export ANSIBLE_DEFAULT_VERSION="v1"
 
 ## Run the setup
 ${TEST_SHELL} /avm/setup.sh
