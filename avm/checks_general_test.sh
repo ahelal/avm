@@ -1,12 +1,13 @@
 #!/bin/sh
-# file: checks_general.sh
+# file: setup_test.sh
 
 MY_PATH="$(dirname "${0}")"        # relative
 DIR="$( cd "${MY_PATH}" && pwd )"  # absolutized and normalized
 
 oneTimeSetUp()
 {
-  # Mocking
+  ##  Mocking
+  # shellcheck disable=SC1090
   . "${DIR}/test_mock.sh"
   alias msg_exit=mock_msg_exit
   alias whoami=mock_whoami
@@ -14,7 +15,7 @@ oneTimeSetUp()
   # Intialize some variables
   export SETUP_USER_HOME="/tmp"
 
-  # shellcheck disable=SC1091
+  # shellcheck disable=SC1090
   . "${DIR}/checks_general.sh"
 }
 

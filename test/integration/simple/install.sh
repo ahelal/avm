@@ -16,7 +16,7 @@ fi
 export SETUP_USER=kitchen
 # don't clone use local path
 export AVM_VERSION="local"
-export AVM_VERBOSE="vv"
+export AVM_VERBOSE="v"
 
 ## Install Ansible 1.9.6 using pip and label it 'v1'
 export ANSIBLE_VERSIONS_0="1.9.6"

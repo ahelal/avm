@@ -17,7 +17,7 @@ msg_exit() {
 
 ## Function: help
 print_help() {
-echo """avm
+echo 'avm
 Usage:
     avm  info
     avm  list
@@ -25,6 +25,7 @@ Usage:
     avm  use <version>
     avm  activate <version>
     avm  install (-v version) [-t type] [-l label] [-r requirements]
+    avm  upgrade (-c)
 
 Options:
     info                        Show ansible version in use
@@ -32,6 +33,7 @@ Options:
     path <version>              Print binary path of specific version
     use  <version>              Use a <version> of ansible
     activate <version>          Activate virtualenv for <version>
+    upgrade                     Upgrade avm to latest final release
 """
 exit 0
 }
@@ -43,7 +45,7 @@ options:
   -t|--type                 Type of installation git or pip (default PIP)
   -l|--label                Custom label for this installation i.e. v2.1, dev, test, ...
   -r|--requirements         Provide a pip requirements files to install in virutalenv
-"""
+'
 exit 0
 }
 
@@ -149,44 +151,45 @@ case $1 in
         msg_exit "${SHELL} is not supported."
     fi
   ;;
-# TODO: renable and test
-# "install" )
-#   [ -z "$2" ] && [ -z "$3" ] && msg_exit "install requires arguments. for more help type 'avm install --help"
-#   [ "${2}" = "-h" ] || [ "${2}" = "--help" ] && print_install_help
-#   shift
-#   while [[ $# -gt 1 ]]
-#   do
-#     key="$1"
-#     case ${key} in
-#       -v|--version)
-#         ANSIBLE_VERSIONS[0]="$2"
-#         shift ;;
-#       -t|--type)
-#         INSTALL_TYPE[0]="$2"
-#         shift ;;
-#       -l|--label)
-#         ANSIBLE_LABEL[0]="$2"
-#         shift ;;
-#       -r|--requirements)
-#         PYTHON_REQUIREMENTS[0]="$2"
-#         shift ;;
-#       -h|--help)
-#         print_install_help;;
-#       *)
-#         msg_exit " unkown option ${1} for install."
-#       ;;
-#     esac
-#     shift
-#   done
-#   [ -z "${ANSIBLE_VERSIONS[0]}" ] && msg_exit " --version is required"
-#   mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
-#   curl -s "https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh" -o "${mytmpdir}/setup.sh"
-#   echo "> You might be asked for your sudo password :"
-#   # Run Setup
-#   sudo whoami > /dev/null
-#   # shellcheck disable=SC1090
-#   . "${mytmpdir}/setup.sh"
-#;;
+"install" )
+  [ -z "$2" ] && [ -z "$3" ] && msg_exit "install requires arguments. for more help type 'avm install --help"
+  [ "${2}" = "-h" ] || [ "${2}" = "--help" ] && print_install_help
+  shift
+  while [ $# -gt 1 ]
+  do
+    key="$1"
+    case ${key} in
+      -v|--version)
+        export ANSIBLE_VERSIONS_0="$2"
+        shift ;;
+      -t|--type)
+        export INSTALL_TYPE_0="$2"
+        shift ;;
+      -l|--label)
+        export ANSIBLE_LABEL_0="$2"
+        shift ;;
+      -r|--requirements)
+        export PYTHON_REQUIREMENTS_0="$2"
+        shift ;;
+      -h|--help)
+        print_install_help;;
+      *)
+        msg_exit " unkown option ${1} for install."
+      ;;
+    esac
+    shift
+  done
+  [ -z "${ANSIBLE_VERSIONS_0}" ] && msg_exit " --version is required"
+  avm_setup="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
+  curl -s "https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh" -o "${avm_setup}/setup.sh"
+  echo "> You might be asked for your sudo password :"
+  # Run Setup
+  sudo true > /dev/null
+  # shellcheck disable=SC1090
+  . "${avm_setup}/setup.sh"
+  # Best do it  in trap
+  rm -f "${avm_setup}/setup.sh"
+  ;;
 '')
   print_help
   ;;
