@@ -188,23 +188,26 @@ INCLUDE_FILE(){
 ## $1 git repo (required)
 ## $2 package name (required)
 ## $3 branch (required)
-## $4 submodules upgdate
+## $4 return variable name (required)
+## $5 submodules upgdate
 manage_git(){
     git_repo="${1}"
     package_name="${2}"
     branch="${3}"
-    submodule="${4}"
+    submodule="${5}"
+    #
     source_git_dir="${AVM_BASEDIR}/.source_git"
     app_git_dir="${source_git_dir}/${package_name}"
 
     RUN_COMMAND_AS "mkdir -p ${source_git_dir}"
     if ! [ -d "${app_git_dir}/.git" ]; then
+      cd "${source_git_dir}" || msg_exit "Failed to cd into '${source_git_dir}'"
       print_verbose "Cloning '${git_repo}' to ${app_git_dir}"
       RUN_COMMAND_AS "git clone ${git_repo} --recursive"
     fi
 
     # will also run this first run :(
-    print_verbose "checking out ${branch} for '${git_repo}' in '${app_git_dir}'"
+    print_verbose "checking out '${branch}' from '${git_repo}'"
     cd "${app_git_dir}"
     RUN_COMMAND_AS "git checkout ${branch}"
     RUN_COMMAND_AS "git pull -q --rebase"
@@ -215,7 +218,7 @@ manage_git(){
         RUN_COMMAND_AS "git submodule update --quiet --init --recursive"
     fi
     # Return path
-    avm_dir="${source_git_dir}/${package_name}"
+    eval "${4}=${source_git_dir}/${package_name}"
 }
 
 ## Good to know what shell
@@ -255,7 +258,7 @@ avm_dir_setup(){
       DIR="$( cd "${MY_PATH}" && pwd )"  # absolutized and normalized
       avm_dir="${DIR}"
   else
-      manage_git https://github.com/ahelal/avm.git avm "${AVM_VERSION}" submodules
+      manage_git https://github.com/ahelal/avm.git avm "${AVM_VERSION}" avm_dir
   fi
   print_done
 }

@@ -52,21 +52,10 @@ ansible_install_venv(){
       RUN_COMMAND_AS "${AVM_BASEDIR}/${ansible_version}/venv/bin/pip install ansible==${ansible_version}"
       print_done
     elif [ "${install_type}" = "git" ]; then
-      source_git_dir=${AVM_BASEDIR}/.source_git
-      mkdir -p "${source_git_dir}"
-      cd "${source_git_dir}"
-      print_status "$ansible_version | Running git clone/checkout"
-      if [ -d "ansible/.git" ]; then
-        cd "ansible"
-        RUN_COMMAND_AS "git pull -q --rebase"
-        RUN_COMMAND_AS "git submodule update --quiet --init --recursive"
-      else
-        RUN_COMMAND_AS "git clone git://github.com/ansible/ansible.git --recursive"
-        cd "ansible"
-      fi
-      RUN_COMMAND_AS "git checkout ${ansible_version}"
+      print_status "${ansible_version} | Running git clone/checkout"
+      manage_git https://github.com/ansible/ansible ansible "${ansible_version}" ansible_version_git submodules
       print_done
-
+      cd "${ansible_version_git}"
       print_status "$ansible_version | Running setup from git "
       RUN_COMMAND_AS "${AVM_BASEDIR}/${ansible_version}/venv/bin/python setup.py install"
       print_done
