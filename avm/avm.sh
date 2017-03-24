@@ -7,8 +7,6 @@ AVM_BASEDIR="{{ AVM_BASEDIR }}"
 # Just to fall back to default this will be overwriten later on in the script
 ANSIBLE_SELECTED_VERSION="{{ ANSIBLE_SELECTED_VERSION }}"
 
-SETUP_VERSION="${SETUP_VERSION-master}"
-
 ## Print Error msg
 msg_exit() {
   printf "> %s\n" "$@"
@@ -49,8 +47,8 @@ exit 0
 
 show_installed(){
   ansible_link="$(readlink "${AVM_BASEDIR}"/bin/ansible)"
-  version="$(echo "${ansible_link}" | sed 's|'"$AVM_BASEDIR"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
-  echo "current version: \"$version\""
+  version="$(echo "${ansible_link}" | sed 's|'"${AVM_BASEDIR}"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
+  echo "current version: \"${version}\""
 }
 
 show_versions(){
@@ -179,8 +177,11 @@ case $1 in
   done
   [ -z "${ANSIBLE_VERSIONS_0}" ] && msg_exit " --version is required"
   cd "${AVM_BASEDIR}/.source_git/avm/" || msg_exit "'${AVM_BASEDIR}/.source_git/avm' does not exist"
+  echo "> You might be asked for your sudo password :"
+  # Run Setup
+  sudo true > /dev/null
   # shellcheck disable=SC1091
-  . ./setup.sh
+  AVM_VERSION=local ./setup.sh
   ;;
 '')
   print_help
