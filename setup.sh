@@ -128,7 +128,7 @@ trap setup_exit EXIT
 trap setup_canceled INT
 
 setup_verboisty(){
-  ## Setup veboisty could be empty or v, vv or vvv'
+  ## Setup verbosity could be empty or v, vv or vvv'
   ##      Show only status messages
   ##  v   show verbose messages, but mute stdout, stderr
   ##  vv  show verbose messages, show stdout, stderr

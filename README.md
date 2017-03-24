@@ -14,7 +14,7 @@ Ansible Version Manager (AVM) is a tool to manage multi Ansible installation by 
 * Change in variable names
 * Stopped using bash arrays ```i.e. ANSIBLE_VERSIONS[0]``` to be more Posix and use flat variables ```i.e. ANSIBLE_VERSIONS_0```
 
-For more info check [Setup variable](Setup variable)
+For more info check [Setup variables](setup-variables)
 
 ## How
 
@@ -33,11 +33,11 @@ AVM_VERSION="v1.0.0"
 ## Install Ansible 1.9.6 using pip and label it 'v1'
 export ANSIBLE_VERSIONS_0="1.9.6"
 export INSTALL_TYPE_0="pip"
-export ANSIBLE_LABEL_0="v1"
-## Install Ansible 2.1.1 using pip and label it 'v2'
-export ANSIBLE_VERSIONS_1="2.1.1.0"
+export ANSIBLE_LABEL_0="v1.9"
+## Install Ansible 2.2.1 using pip and label it 'v2'
+export ANSIBLE_VERSIONS_1="2.2.1.0"
 export INSTALL_TYPE_1="pip"
-export ANSIBLE_LABEL_1="v2"
+export ANSIBLE_LABEL_1="v2.2"
 ## Install Ansible devel using git and label it 'devel'
 export ANSIBLE_VERSIONS_2="devel"
 export INSTALL_TYPE_2="git"
@@ -48,7 +48,7 @@ ANSIBLE_DEFAULT_VERSION="v2.1"
 ## Create a temp dir to download avm
 avm_dir="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
 git clone https://github.com/ahelal/avm.git "${avm_dir}" > /dev/null 2>&1
-/bin/sh $${avm_dir}/setup.sh
+/bin/sh ${avm_dir}/setup.sh
 
 ## Run the setup
 . $my_temp_dir/setup.sh
@@ -95,30 +95,25 @@ Options:
     activate <version>          Activate virtualenv for <version>
 ```
 
-## Setup variable
+## Setup variables
 
-If you are using [Setup wrapper script](Setup wrapper script) you can change override any of the following variables in your script
+If you are using [Setup wrapper script](setup-wrapper-script) you can override any of the following variables in your script.
 
 | Name | default | Description |
 |----------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| AVM_VERSION | master | avm version to install. Supports releases, tags, branches. if set to "local" will use will use pwd instead of downloading from github good for debugging. |
-| AVM_VERBOSE |  | Setup verbosity could be empty or v or vv |
-| SETUP_USER | $USER | The user that will have avm |
-| SETUP_USER_HOME | $USER home dir | The home dir of user  |
+| AVM_VERSION | master | avm version to install. Supports releases, tags, branches. if set to "local" will use *pwd* as source of installation. |
+| AVM_VERBOSE |  | Setup verbosity could be empty, v, vv or vvv |
+| SETUP_USER | $USER | The setup user that will have avm and use avm. |
+| SETUP_USER_HOME | $USER home dir | The home dir of setup user.  |
 | AVM_IGNORE_SUDO |  | Simply ignore sudo errors. |
 | DEFAULT_INSTALL_TYPE | pip | Default installation type if not defined. |
 | AVM_UPDATE_VENV | 0 |  |
-| ANSIBLE_BIN_PATH | /usr/local/bin |  |
+| ANSIBLE_BIN_PATH | /usr/local/bin | Path to install the ansible and avm binary.  |
 | ANSIBLE_VERSIONS_X |  |  |
 | ANSIBLE_LABEL_X |  |  |
 | INSTALL_TYPE_X |  |  |
 | UBUNTU_PKGS |  |  |
 
-
-
-
-## Ansible bin path it should be something in your path
-ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
 
 ## Supported platforms
 Currently tested under
@@ -148,12 +143,19 @@ apk del build-dependencies
 ```
 
 ## Debugging
-### Level 1
-Run your setup with ```AVM_VERBOSE="v" your_setup.sh```
-This should give ou insight on all the goodies
-### Level 2
-extreme debugging
-Run your setup with ```AVM_VERBOSE="vv" your_setup.sh```
+
+### Verbosity
+Setup verbosity could be empty or *v*, *vv* or *vvv*
+
+i.e. ```AVM_VERBOSE="vv" your_setup.sh```
+
+*v*   : Show verbose messages, but mute stdout, stderr
+*vv*  : Show verbose messages and stdout, stderr
+*vvv* : Show verbose messages, stdout, stderr and set -x
+
+### In depth debugging
+By default avm uses the *AVM_VERSION* to download and checkout that branch. if you want to debug and change the script you can use *AVM_VERSION=local* to use a local version of avm.
+
 
 ## License
 License (MIT)

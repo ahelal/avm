@@ -25,7 +25,6 @@ Usage:
     avm  use <version>
     avm  activate <version>
     avm  install (-v version) [-t type] [-l label] [-r requirements]
-    avm  upgrade (-c)
 
 Options:
     info                        Show ansible version in use
@@ -33,7 +32,6 @@ Options:
     path <version>              Print binary path of specific version
     use  <version>              Use a <version> of ansible
     activate <version>          Activate virtualenv for <version>
-    upgrade                     Upgrade avm to latest final release
 """
 exit 0
 }
