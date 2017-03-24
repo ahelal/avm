@@ -205,7 +205,7 @@ manage_git(){
       print_verbose "Cloning '${git_repo}' to ${app_git_dir}"
       RUN_COMMAND_AS "git clone ${git_repo} --recursive"
     else
-      RUN_COMMAND_AS "git fetch origin"
+      RUN_COMMAND_AS "git fetch origin --tags"
     fi
 
     # will also run this first run :(
