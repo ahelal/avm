@@ -214,7 +214,7 @@ manage_git(){
     cd "${app_git_dir}"
     RUN_COMMAND_AS "git checkout ${branch}"
 
-    if git show-ref --verify "refs/heads/${branch}"; then
+    if git show-ref --verify "refs/heads/${branch}" > /dev/null 2>&1; then
       print_verbose "git pulling from '${app_git_dir}'"
       RUN_COMMAND_AS "git pull -q --rebase"
     fi
