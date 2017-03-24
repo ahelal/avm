@@ -8,7 +8,6 @@ print_done
 INCLUDE_FILE "${avm_dir}/avm/_distro.sh"
 supported_distro
 
-print_status "Checking post distro check."
 INCLUDE_FILE "${avm_dir}/avm/checks_post.sh"
 checks_post
 
