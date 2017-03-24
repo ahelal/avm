@@ -1,5 +1,4 @@
 #!/bin/sh
-
 set -e
 
 ## First thing what kind of shell are we running. It turns out that is not so easy to find
@@ -82,17 +81,18 @@ print_error() {
 }
 
 ## Print Error msg and exit
-##
+## $1 optional msg
 msg_exit() {
   if [ "${MSG_STATUS}" = "1" ]; then print_failed; fi
   printf "\n"
   if ! [ -z "${1}" ]; then
+    # We know why it failed
     print_error "Setup failed 😢."
     print_error "${1}"
   else
     print_error "Setup failed 😢. You can try the folloiwng"
     print_error "1. Running the setup again."
-    print_error "2. Increase verbosity level i.e. 'AVM_VERBOSE=v ./YOUR_SETUP' support '', 'v', 'vv' or 'vvv'"
+    print_error "2. Increase verbosity level by populating 'AVM_VERBOSE=v' supports '', 'v', 'vv' or 'vvv'"
     print_error "3. Open an issue and paste the out REMOVE any sensitve data"
   fi
   exit 99
@@ -227,10 +227,13 @@ print_verbose "AVM run using shell=${SHELL_TYPE}"
 # AVM version to install. Supports git releases (default to master)
 # if set to "local" will use pwd good for debuging and CI
 AVM_VERSION="${AVM_VERSION-master}"
+
 ## What user is used for the setup and he's home dir
 SETUP_USER="${SETUP_USER-$USER}"
+
 SETUP_USER_HOME="${SETUP_USER_HOME:-$(eval echo "~${SETUP_USER}")}"
 print_verbose "Setup SETUP_USER=${SETUP_USER} and SETUP_USER_HOME=${SETUP_USER_HOME}"
+
 ## Ignore sudo errors
 AVM_IGNORE_SUDO="${AVM_IGNORE_SUDO-0}"
 
@@ -245,7 +248,6 @@ AVM_UPDATE_VENV="${AVM_UPDATE_VENV:-'no'}"
 
 ## Ansible bin path it should be something in your path
 ANSIBLE_BIN_PATH="${ANSIBLE_BIN_PATH:-/usr/local/bin}"
-
 
 ## We have 2 options depanding on verion
 ##  1- local used for development and in CI for testing
@@ -262,9 +264,7 @@ avm_dir_setup(){
   fi
   print_done
 }
-
 avm_dir_setup
-
 
 # Include Main file
 INCLUDE_FILE "${avm_dir}/avm/main.sh"

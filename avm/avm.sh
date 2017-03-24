@@ -180,15 +180,9 @@ case $1 in
     shift
   done
   [ -z "${ANSIBLE_VERSIONS_0}" ] && msg_exit " --version is required"
-  avm_setup="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
-  curl -s "https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh" -o "${avm_setup}/setup.sh"
-  echo "> You might be asked for your sudo password :"
-  # Run Setup
-  sudo true > /dev/null
-  # shellcheck disable=SC1090
-  . "${avm_setup}/setup.sh"
-  # Best do it  in trap
-  rm -f "${avm_setup}/setup.sh"
+  cd "${AVM_BASEDIR}/.source_git/avm/" || msg_exit "'${AVM_BASEDIR}/.source_git/avm' does not exist"
+  # shellcheck disable=SC1091
+  . ./setup.sh
   ;;
 '')
   print_help
