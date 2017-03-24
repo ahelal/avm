@@ -205,14 +205,19 @@ manage_git(){
       print_verbose "Cloning '${git_repo}' to ${app_git_dir}"
       RUN_COMMAND_AS "git clone ${git_repo} --recursive"
     else
+      cd "${app_git_dir}" || msg_exit "Failed to cd into '${app_git_dir}'"
       RUN_COMMAND_AS "git fetch origin --tags"
     fi
 
     # will also run this first run :(
-    print_verbose "checking out '${branch}' from '${git_repo}'"
+    print_verbose "checking out '${branch}' from '${app_git_dir}'"
     cd "${app_git_dir}"
     RUN_COMMAND_AS "git checkout ${branch}"
-    RUN_COMMAND_AS "git pull -q --rebase"
+
+    if git show-ref --verify "refs/heads/${branch}"; then
+      print_verbose "git pulling from '${app_git_dir}'"
+      RUN_COMMAND_AS "git pull -q --rebase"
+    fi
 
     if [ -z "${submodule}" ]; then
         print_verbose "git updating submodule for '${git_repo}'"
