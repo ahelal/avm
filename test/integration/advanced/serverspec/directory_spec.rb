@@ -2,13 +2,13 @@ require_relative '../../helper_spec.rb'
 
 context 'Directory stucture for V2.0' do
 
-  describe command '/home/kitchen/.venv_ansible/v2.0/venv/bin/python -c "import boto3"' do
+  describe command '/home/kitchen/.avm/v2.0/venv/bin/python -c "import boto3"' do
     it 'does have boto installed' do
       expect(subject.exit_status).to eq 0
     end
   end
 
-  describe file('/home/kitchen/.venv_ansible/v2.0/ansible/.git') do
+  describe file('/home/kitchen/.avm/v2.0/ansible/.git') do
     it 'does not have .git' do
       should_not exist
     end
@@ -16,13 +16,13 @@ context 'Directory stucture for V2.0' do
 end
 
 context 'Directory stucture for V2.1' do
-  describe command '/home/kitchen/.venv_ansible/v2.1/venv/bin/python -c "import boto3"' do
+  describe command '/home/kitchen/.avm/v2.1/venv/bin/python -c "import boto3"' do
     it 'does not have boto installed' do
       expect(subject.exit_status).to eq 1
     end
   end
 
-  describe file('/home/kitchen/.venv_ansible/v2.1/ansible/.git') do
+  describe file('/home/kitchen/.avm/v2.1/ansible/.git') do
     it 'does not have .git' do
       should_not exist
     end
@@ -30,21 +30,28 @@ context 'Directory stucture for V2.1' do
 end
 
 context 'Directory stucture for devel' do
-  describe command ' /home/kitchen/.venv_ansible/devel/venv/bin/python -c "import boto3"' do
+  describe command ' /home/kitchen/.avm/devel/venv/bin/python -c "import boto3"' do
     it 'does have boto installed' do
       expect(subject.exit_status).to eq 0
     end
   end
 
-  describe file('/home/kitchen/.venv_ansible/devel/ansible/.git') do
+  describe file('/home/kitchen/.avm/.source_git/ansible/.git') do
     it 'has .git' do
       should exist
     end
   end
+
+  describe command 'cd /home/kitchen/.avm/.source_git/ansible/;git branch' do
+    it 'is devel' do
+      expect(subject.stdout).to match('devel')
+    end
+  end
+
 end
 
 context 'Directory stucture venv' do
-  describe file('/home/kitchen/.venv_ansible/') do
+  describe file('/home/kitchen/.avm/') do
     it 'has right perm' do
       should exist
       should be_directory
@@ -53,7 +60,3 @@ context 'Directory stucture venv' do
     end
   end
 end
-
-
-
-

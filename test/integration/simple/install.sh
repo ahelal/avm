@@ -1,9 +1,8 @@
 #!/bin/bash
 set -e
-echo "Running travis simple.sh"
-DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-AVM_SETUP_PATH="/avm/setup.sh"
+echo "Running simple.sh"
+TEST_SHELL="${TEST_SHELL-/bin/sh}"
 
 if [ -f /etc/redhat-release ]; then
   yum update
@@ -13,28 +12,29 @@ if [ -f /etc/lsb-release ]; then
   sudo apt-get -y install git
 fi
 
-## Install Ansible 1.9.6
-ANSIBLE_VERSIONS[0]="1.9.6"
-INSTALL_TYPE[0]="pip"
-ANSIBLE_LABEL[0]="v1"
+## Setup config
+export SETUP_USER=kitchen
+# don't clone use local path
+export AVM_VERSION="local"
+export AVM_VERBOSE="v"
 
-## Install Ansible 2.1
-ANSIBLE_VERSIONS[1]="2.1.1.0"
-INSTALL_TYPE[1]="pip"
-ANSIBLE_LABEL[1]="v2"
+## Install Ansible 1.9.6 using pip and label it 'v1'
+export ANSIBLE_VERSIONS_0="1.9.6"
+export INSTALL_TYPE_0="pip"
+export ANSIBLE_LABEL_0="v1"
 
-## Install Ansible stable-2.0
-ANSIBLE_VERSIONS[2]="devel"
-INSTALL_TYPE[2]="git"
-ANSIBLE_LABEL[2]="devel"
+## Install Ansible 2.1.1 using pip and label it 'v2'
+export ANSIBLE_VERSIONS_1="2.1.1.0"
+export INSTALL_TYPE_1="pip"
+export ANSIBLE_LABEL_1="v2"
 
-SETUP_USER=kitchen
+## Install Ansible devel using git and label it 'devel'
+export ANSIBLE_VERSIONS_2="devel"
+export INSTALL_TYPE_2="git"
+export ANSIBLE_LABEL_2="devel"
 
-ANSIBLE_VERSION_J2_HTTPS=file:///avm/avm.j2
-# Whats the default version
-ANSIBLE_DEFAULT_VERSION="v1"
+## Whats the default version
+export ANSIBLE_DEFAULT_VERSION="v1"
 
-SETUP_VERSION=feature/optional_Setup
-#SETUP_VERBOSITY="vv"
-#
-. $AVM_SETUP_PATH
+## Run the setup
+${TEST_SHELL} /avm/setup.sh

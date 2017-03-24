@@ -32,7 +32,7 @@ context 'AVM Manage' do
   describe command 'avm list' do
     it 'show installed version' do
       expect(subject.exit_status).to eq 0
-      expect(subject.stdout).to match("installed versions: '1.9.6' '2.1.1.0' 'devel' 'v1' 'v2'")
+      expect(subject.stdout).to match("installed versions:  '1.9.6' '2.1.1.0' 'devel' 'v1' 'v2'")
     end
   end
 
@@ -63,14 +63,14 @@ context 'AVM Manage' do
   describe command 'avm path v1' do
     it 'print the correct v1 path ' do
       expect(subject.exit_status).to eq 0
-      expect(subject.stdout).to match('/home/kitchen/.venv_ansible/v1/venv/bin/')
+      expect(subject.stdout).to match('/home/kitchen/.avm/v1/venv/bin/')
     end
   end
 
   describe command 'avm path v2' do
     it 'print the correct v2 path ' do
       expect(subject.exit_status).to eq 0
-      expect(subject.stdout).to match('/home/kitchen/.venv_ansible/v2/venv/bin/')
+      expect(subject.stdout).to match('/home/kitchen/.avm/v2/venv/bin/')
     end
   end
 

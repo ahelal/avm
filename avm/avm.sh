@@ -1,10 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-ANSIBLE_BASEDIR="{{ ANSIBLE_BASEDIR }}"
+# avm cli tool
+
+AVM_BASEDIR="{{ AVM_BASEDIR }}"
+# Just to fall back to default this will be overwriten later on in the script
 ANSIBLE_SELECTED_VERSION="{{ ANSIBLE_SELECTED_VERSION }}"
 
-SETUP_VERSION="${SETUP_VERSION-master}"
 ## Print Error msg
 msg_exit() {
   printf "> %s\n" "$@"
@@ -13,7 +15,7 @@ msg_exit() {
 
 ## Function: help
 print_help() {
-echo """avm
+echo 'avm
 Usage:
     avm  info
     avm  list
@@ -39,24 +41,24 @@ options:
   -t|--type                 Type of installation git or pip (default PIP)
   -l|--label                Custom label for this installation i.e. v2.1, dev, test, ...
   -r|--requirements         Provide a pip requirements files to install in virutalenv
-"""
+'
 exit 0
 }
 
 show_installed(){
-  ansible_link="$(readlink ${ANSIBLE_BASEDIR}/bin/ansible)"
-  version="$(echo $ansible_link | sed 's|'"$ANSIBLE_BASEDIR"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
-  echo "current version: \"$version\""
+  ansible_link="$(readlink "${AVM_BASEDIR}"/bin/ansible)"
+  version="$(echo "${ansible_link}" | sed 's|'"${AVM_BASEDIR}"'||g ; s|/venv/bin/||g ; s|ansible||g; s|/||g')"
+  echo "current version: \"${version}\""
 }
 
 show_versions(){
-  cd "${ANSIBLE_BASEDIR}"
+  cd "${AVM_BASEDIR}"
   for version in *
   do
-    [[ $version =~ ^(ansible-version)$ ]] && continue
-    [[ $version =~ ^(bin)$ ]] && continue
-    [[ $version =~ ^(avm)$ ]] && continue
-    versions_list+="'${version}' "
+    [ "${version}" = "ansible-version" ] && continue
+    [ "${version}" = "bin" ] && continue
+    [ "${version}" = "avm" ] && continue
+    versions_list="${versions_list} '${version}'"
   done
   echo "${versions_list}"
 }
@@ -64,28 +66,42 @@ show_versions(){
 # Verify version
 verify_version(){
   versions_list="$(show_versions)"
-  if ! [[ ${versions_list} == *"'${ANSIBLE_SELECTED_VERSION}'"* ]]; then
+  # loop over version list and check if ANSIBLE_SELECTED_VERSION is there
+  found_version="0"
+  for version_item in ${versions_list}
+  do
+    if [ "${version_item}" = "'${ANSIBLE_SELECTED_VERSION}'" ]; then
+      found_version="1"
+      break
+    fi
+  done
+
+  if [ "${found_version}" = "0" ]; then
     echo "The desired version \"${ANSIBLE_SELECTED_VERSION}\" is not in the version list."
-    echo "available version: $versions_list"
+    echo "available version: ${versions_list}"
     exit 1
   fi
-  if ! [ -d $ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/ ]; then
-    msg_exit "Your virtualenv seems to be not installed or incorrect reference. \"$ANSIBLE_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/\" is not a valid directory"
+  if ! [ -d "${AVM_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/" ]; then
+    msg_exit "Your virtualenv seems to be not installed or incorrect reference. \"$AVM_BASEDIR/${ANSIBLE_SELECTED_VERSION}/venv/bin/\" is not a valid directory"
   fi
 }
 
 print_path(){
   verify_version
-  echo "${ANSIBLE_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/"
+  echo "${AVM_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/"
 }
 
 setup_links(){
     verify_version
     for bin in ansible ansible-doc ansible-galaxy ansible-playbook ansible-pull ansible-vault ansible-console
     do
-      ln -sf "${ANSIBLE_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/${bin}" "${ANSIBLE_BASEDIR}/bin/${bin}"
+      if [ -e "${AVM_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/${bin}" ]; then
+        ln -sf "${AVM_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/${bin}" "${AVM_BASEDIR}/bin/${bin}"
+      else
+        echo "skiping '${AVM_BASEDIR}/${ANSIBLE_SELECTED_VERSION}/venv/bin/${bin}' binary is missing."
+      fi
     done
-    echo "Updating to use ${ANSIBLE_SELECTED_VERSION}"
+    echo "Updated to use ${ANSIBLE_SELECTED_VERSION}"
 }
 
 case $1 in
@@ -96,7 +112,7 @@ case $1 in
   echo "installed versions: $(show_versions)"
   ;;
 "path")
-  [ -z "$2" ] && msg_exit "path requires a version as an argument."
+  [ -z "$2" ] && msg_exit "'path' requires a version as an argument."
   version="$2"
   export ANSIBLE_SELECTED_VERSION="$2"
   print_path
@@ -135,21 +151,21 @@ case $1 in
   [ -z "$2" ] && [ -z "$3" ] && msg_exit "install requires arguments. for more help type 'avm install --help"
   [ "${2}" = "-h" ] || [ "${2}" = "--help" ] && print_install_help
   shift
-  while [[ $# -gt 1 ]]
+  while [ $# -gt 1 ]
   do
     key="$1"
     case ${key} in
       -v|--version)
-        ANSIBLE_VERSIONS[0]="$2"
+        export ANSIBLE_VERSIONS_0="$2"
         shift ;;
       -t|--type)
-        INSTALL_TYPE[0]="$2"
+        export INSTALL_TYPE_0="$2"
         shift ;;
       -l|--label)
-        ANSIBLE_LABEL[0]="$2"
+        export ANSIBLE_LABEL_0="$2"
         shift ;;
       -r|--requirements)
-        PYTHON_REQUIREMENTS[0]="$2"
+        export PYTHON_REQUIREMENTS_0="$2"
         shift ;;
       -h|--help)
         print_install_help;;
@@ -159,15 +175,14 @@ case $1 in
     esac
     shift
   done
-  [ -z "${ANSIBLE_VERSIONS[0]}" ] && msg_exit " --version is required"
-  mytmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir')
-  curl -s "https://raw.githubusercontent.com/ahelal/avm/${SETUP_VERSION}/setup.sh" -o "${mytmpdir}/setup.sh"
+  [ -z "${ANSIBLE_VERSIONS_0}" ] && msg_exit " --version is required"
+  cd "${AVM_BASEDIR}/.source_git/avm/" || msg_exit "'${AVM_BASEDIR}/.source_git/avm' does not exist"
   echo "> You might be asked for your sudo password :"
   # Run Setup
-  sudo whoami > /dev/null
-  # shellcheck disable=SC1090
-  . "${mytmpdir}/setup.sh"
-;;
+  sudo true > /dev/null
+  # shellcheck disable=SC1091
+  AVM_VERSION=local ./setup.sh
+  ;;
 '')
   print_help
   ;;
