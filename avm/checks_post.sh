@@ -1,7 +1,7 @@
 #!/bin/sh
 
 checks_post(){
-  print_status "Installing/upgrading virtualenv for Ubuntu"
+  print_status "Installing/upgrading virtualenv"
   if [ -z "$(which pip)" ]; then
     sudo -H easy_install -q --upgrade virtualenv
   else
