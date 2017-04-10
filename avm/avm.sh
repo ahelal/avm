@@ -165,7 +165,12 @@ case $1 in
         export ANSIBLE_LABEL_0="$2"
         shift ;;
       -r|--requirements)
-        export PYTHON_REQUIREMENTS_0="$2"
+        export PYTHON_REQUIREMENTS_0
+        if [ "${2}" != "${2#/}" ]; then
+          PYTHON_REQUIREMENTS_0="${2}"
+        else
+          PYTHON_REQUIREMENTS_0="$(pwd)/${2}"
+        fi
         shift ;;
       -h|--help)
         print_install_help;;
