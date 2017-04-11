@@ -36,8 +36,12 @@ platforms:
 suites                    :
     - name                : simple
       provisioner         :
-        script            : <%= File.dirname(__FILE__) %>/test/integration/simple/run_as_kitchen.sh
+        script            : test/integration/simple/run_as_kitchen.sh
 
     - name                : advanced
       provisioner         :
         script            : test/integration/advanced/run_as_kitchen.sh
+
+    - name                : cli
+      provisioner         :
+        script            : test/integration/cli/run_as_kitchen.sh
