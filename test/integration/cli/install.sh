@@ -27,10 +27,10 @@ ${TEST_SHELL} /avm/setup.sh
 
 ## Run installation
 printf "\nRunning avm install cli (1)\n"
-avm install -v 2.0.2.0 -l v2.0 -r /avm/test/integration/cli/requirements.txt
+/usr/local/bin/avm install -v 2.0.2.0 -l v2.0 -r /avm/test/integration/cli/requirements.txt
 
 printf "\nRunning avm install cli (2)\n"
-avm install -v 2.1.1.0 -l v2.1 -t pip
+/usr/local/bin/avm install -v 2.1.1.0 -l v2.1 -t pip
 
 printf "\nRunning avm install cli (3)\n"
-avm install --version devel --label devel --requirements /avm/test/integration/cli/requirements.txt -t git
+/usr/local/bin/avm install --version devel --label devel --requirements /avm/test/integration/cli/requirements.txt -t git
