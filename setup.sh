@@ -1,24 +1,6 @@
 #!/bin/sh
 set -e
 
-## First thing what kind of shell are we running. It turns out that is not so easy to find
-## Really unreliable and should be changed :(
-shell_path="$(ps -o comm=  $$ | tr -d "-" | head -1)" # Get this process name
-if ! [ -f "${shell_path}" ]; then shell_path="/bin/${shell_path}"; fi # assume it is in /bin if not full path
-shell_help="$(${shell_path} --help 2>&1 | head -1)" # just get help screen
-if echo "${shell_help}" | grep bash > /dev/null 2>&1; then
-  SHELL_TYPE="bash"
-elif echo "${shell_help}" | grep zsh > /dev/null 2>&1; then
-  SHELL_TYPE="zsh"
-elif echo "${shell_help}" | grep BusyBox > /dev/null 2>&1; then
-  SHELL_TYPE="BusyBox"
-elif echo "${shell_help}" | grep Illegal > /dev/null 2>&1 && readlink "${shell_path}" | grep "dash"; then
-  SHELL_TYPE="dash"
-else
-    echo "**** WARNING I HAVE NO IDEA WHAT KIND OF SHELL YOU ARE RUNNNING ****"
-    echo "**** Might not work. Probably will not if it does let me know :)****"
-fi
-
 ## default variable
 MSG_STATUS="0"
 avm_dir=""
@@ -227,9 +209,6 @@ manage_git(){
     # Return path
     eval "${4}=${source_git_dir}/${package_name}"
 }
-
-## Good to know what shell
-print_verbose "AVM run using shell=${SHELL_TYPE}"
 
 # AVM version to install. Supports git releases (default to master)
 # if set to "local" will use pwd good for debuging and CI
