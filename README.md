@@ -10,7 +10,7 @@ Ansible Version Manager (AVM) is a tool to manage multi Ansible installation by 
 * Create a wrapper script to manage Ansible within your teams and make upgrading roll back easier for many users with different OS and shells.
 * If you need add python packages to and make it accessible to Ansible without effecting your global python installation. i.e. boto, dnspython, netaddr or others
 
-## Incompatibly as of 1.0.0 version (not released yet)
+## Incompatibly as of 1.0.0 version
 * Change in variable names
 * Stopped using bash arrays ```i.e. ANSIBLE_VERSIONS[0]``` to be more Posix and use flat variables ```i.e. ANSIBLE_VERSIONS_0```
 
