@@ -26,33 +26,38 @@ Create a wrapper script this would be useful for CI or if you want your team to 
 ```bash
 #!/bin/sh
 set -e
+# What version of AVM setup to use
+export AVM_VERSION="v1.0.0"
 
-## This is an example setup script that you would encapsulate the installation
-# What version of avm setup to use
-AVM_VERSION="v1.0.0"
-## Install Ansible 1.9.6 using pip and label it 'v1'
+## Install Ansible 1.9.6 using pip and label it 'v1.9'
 export ANSIBLE_VERSIONS_0="1.9.6"
 export INSTALL_TYPE_0="pip"
 export ANSIBLE_LABEL_0="v1.9"
-## Install Ansible 2.2.1 using pip and label it 'v2'
-export ANSIBLE_VERSIONS_1="2.2.1.0"
+
+## Install Ansible 2.2.3.0 using pip and label it 'v2.2'
+export ANSIBLE_VERSIONS_1="2.2.3.0"
 export INSTALL_TYPE_1="pip"
 export ANSIBLE_LABEL_1="v2.2"
-## Install Ansible devel using git and label it 'devel'
+
+## Install Ansible 2.3.1.0 using pip and label it 'v2.3'
+export ANSIBLE_VERSIONS_2="2.3.1.0"
+export INSTALL_TYPE_2="pip"
+export ANSIBLE_LABEL_2="v2.3"
+
+## Install Ansible from devel using git and label it 'devel'
 export ANSIBLE_VERSIONS_2="devel"
 export INSTALL_TYPE_2="git"
 export ANSIBLE_LABEL_2="devel"
+
 # Whats the default version
-ANSIBLE_DEFAULT_VERSION="v2.1"
+export ANSIBLE_DEFAULT_VERSION="v1.9"
 
 ## Create a temp dir to download avm
 avm_dir="$(mktemp -d 2> /dev/null || mktemp -d -t 'mytmpdir')"
 git clone https://github.com/ahelal/avm.git "${avm_dir}" > /dev/null 2>&1
-/bin/sh ${avm_dir}/setup.sh
-
 ## Run the setup
-. $my_temp_dir/setup.sh
-# You can do other stuff here like install other tools for your team
+/bin/sh "${avm_dir}/setup.sh"
+
 exit 0
 ```
 
