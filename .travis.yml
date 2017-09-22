@@ -29,7 +29,7 @@ install:
   - bundle install
 
 script:
-    - bundle exec kitchen test $KITCHEN_TEST
+    - LC_ALL=C bundle exec kitchen test $KITCHEN_TEST
 
 after_success:
     - echo "Success"
