@@ -15,7 +15,7 @@ msg_exit() {
 
 ## Function: help
 print_help() {
-echo 'avm
+  echo 'avm
 Usage:
     avm  info
     avm  list
@@ -30,19 +30,19 @@ Options:
     path <version>              Print binary path of specific version
     use  <version>              Use a <version> of ansible
     activate <version>          Activate virtualenv for <version>
-"""
-exit 0
+'
+  exit 0
 }
 
 print_install_help() {
-echo """avm install
+  echo 'avm install
 options:
   -v|--version              Version to install (this is mandatory)
   -t|--type                 Type of installation git or pip (default PIP)
   -l|--label                Custom label for this installation i.e. v2.1, dev, test, ...
   -r|--requirements         Provide a pip requirements files to install in virutalenv
 '
-exit 0
+  exit 0
 }
 
 show_installed(){
@@ -123,7 +123,7 @@ case $1 in
   export ANSIBLE_SELECTED_VERSION="$2"
   setup_links
   ;;
-"activate" )
+"activate")
     version="${2}"
     [ -z "${version}" ] && msg_exit "activate requires a version as an argument."
     ! [ -z "${AVM_ACTIVATE}" ] && msg_exit "You are allready in anisble env. type 'exit' to quit from virtual env"
@@ -155,16 +155,16 @@ case $1 in
   do
     key="$1"
     case ${key} in
-      -v|--version)
+      "-v" | "--version")
         export ANSIBLE_VERSIONS_0="$2"
         shift ;;
-      -t|--type)
+      "-t" | "--type")
         export INSTALL_TYPE_0="$2"
         shift ;;
-      -l|--label)
+      "-l" | "--label")
         export ANSIBLE_LABEL_0="$2"
         shift ;;
-      -r|--requirements)
+      "-r" | "--requirements")
         export PYTHON_REQUIREMENTS_0
         if [ "${2}" != "${2#/}" ]; then
           PYTHON_REQUIREMENTS_0="${2}"
@@ -172,7 +172,7 @@ case $1 in
           PYTHON_REQUIREMENTS_0="$(pwd)/${2}"
         fi
         shift ;;
-      -h|--help)
+      "-h" | "--help")
         print_install_help;;
       *)
         msg_exit " unkown option ${1} for install."
@@ -187,6 +187,9 @@ case $1 in
   sudo true > /dev/null
   # shellcheck disable=SC1091
   AVM_VERSION=local ./setup.sh
+  ;;
+"--help" | "-h" | "help")
+  print_help
   ;;
 '')
   print_help
