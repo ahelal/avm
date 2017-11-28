@@ -64,7 +64,7 @@ exit 0
 ### Setup Command
 You would need first to install avm
 ```bash
-git https://github.com/ahelal/avm.git
+git clone https://github.com/ahelal/avm.git
 cd avm
 ./setup.sh
 ```
